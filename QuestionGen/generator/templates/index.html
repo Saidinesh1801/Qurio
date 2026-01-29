@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qurio - Intelligent Question Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #262626;
+            --bg-navbar: #0f0f0f;
+            --text-primary: #f5f5f5;
+            --text-secondary: #e8e8e8;
+            --text-tertiary: #d0d0d0;
+            --text-muted: #b0b0b0;
+            --border-color: rgba(232, 232, 232, 0.2);
+            --border-hover: rgba(232, 232, 232, 0.6);
+        }
+
+        html.light-theme {
+            --bg-primary: #f8f8f8;
+            --bg-secondary: #ffffff;
+            --bg-navbar: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #333333;
+            --text-tertiary: #555555;
+            --text-muted: #888888;
+            --border-color: rgba(26, 26, 26, 0.15);
+            --border-hover: rgba(26, 26, 26, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--bg-primary); 
+            min-height: 100vh; 
+            font-family: 'Segoe UI', sans-serif; 
+            color: var(--text-secondary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .particle { 
+            position: absolute; 
+            background: rgba(232, 232, 232, 0.08); 
+            border-radius: 50%; 
+            animation: float 15s infinite ease-in-out; 
+        }
+        
+        html.light-theme .particle { background: rgba(26, 26, 26, 0.05); }
+
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px) translateX(0px); } 
+            50% { transform: translateY(-60px) translateX(40px); } 
+        }
+
+        .navbar { 
+            background: var(--bg-navbar) !important; 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 1rem 0;
+            transition: background 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand { 
+            font-size: 1.5rem;
+            font-weight: 800; 
+            color: var(--text-primary); 
+            letter-spacing: 2px;
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle-btn {
+            background: var(--border-color);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--border-hover);
+            transform: scale(1.05);
+        }
+
+        .page-container { 
+            display: none; 
+            min-height: 100vh; 
+            position: relative; 
+            z-index: 2; 
+            padding: 40px 20px;
+        }
+
+        .page-container.active { display: block; }
+
+        .home-hero { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 60vh;
+            text-align: center; 
+            padding: 40px 20px;
+        }
+
+        .home-hero h1 { 
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 900; 
+            color: var(--text-primary); 
+            margin-bottom: 1rem;
+        }
+
+        .home-hero p { 
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: var(--text-tertiary); 
+            margin-bottom: 2rem;
+        }
+
+        .btn-hero { 
+            background: var(--text-primary); 
+            border: none; 
+            color: var(--bg-primary); 
+            font-weight: 800; 
+            padding: 14px 40px; 
+            border-radius: 50px; 
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            box-shadow: 0 0 20px rgba(245, 245, 245, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-hero:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 40px rgba(245, 245, 245, 0.3);
+        }
+
+        .upload-container { 
+            background: var(--bg-secondary); 
+            border: 2px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: clamp(20px, 5vw, 50px); 
+            max-width: 100%;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .upload-container h2 { 
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            font-weight: 700; 
+            color: var(--text-primary); 
+            margin-bottom: 2rem;
+        }
+
+        .upload-box { 
+            border: 3px dashed var(--border-color); 
+            border-radius: 15px; 
+            padding: clamp(30px, 5vw, 60px);
+            background: var(--bg-primary);
+            cursor: pointer; 
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .upload-box:hover { 
+            border-color: var(--border-hover); 
+            background: var(--bg-secondary);
+        }
+
+        .upload-box label { 
+            color: var(--text-primary); 
+            font-weight: 700; 
+            cursor: pointer;
+        }
+
+        .upload-box i { 
+            font-size: clamp(2.5rem, 10vw, 3.5rem);
+        }
+
+        #fileUpload { 
+            opacity: 0; 
+            position: absolute; 
+            width: 0;
+            height: 0;
+            cursor: pointer;
+        }
+        
+        .file-input-wrapper { position: relative; cursor: pointer; }
+
+        .form-control, .form-select { 
+            background: rgba(232, 232, 232, 0.05) !important; 
+            border: 1.5px solid var(--border-color) !important; 
+            color: var(--text-secondary) !important; 
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus { 
+            background: rgba(232, 232, 232, 0.1) !important; 
+            border-color: var(--text-primary) !important; 
+            box-shadow: 0 0 15px rgba(232, 232, 232, 0.2) !important; 
+            color: var(--text-primary) !important;
+        }
+
+        .form-select option { 
+            background: var(--bg-secondary); 
+            color: var(--text-secondary);
+        }
+
+        .form-label { 
+            color: var(--text-tertiary); 
+            font-weight: 600;
+        }
+
+        .btn-generate { 
+            background: var(--text-primary); 
+            border: none; 
+            color: var(--bg-primary); 
+            font-weight: 800; 
+            border-radius: 15px; 
+            padding: 15px 30px; 
+            box-shadow: 0 4px 20px rgba(245, 245, 245, 0.2); 
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            width: 100%;
+        }
+
+        .btn-generate:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 40px rgba(245, 245, 245, 0.3);
+        }
+
+        .preview-container { 
+            background: var(--bg-secondary); 
+            border: 2px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: clamp(20px, 5vw, 40px); 
+            max-width: 100%;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .preview-container h2 { 
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 700; 
+            color: var(--text-primary); 
+            margin-bottom: 2rem; 
+            text-align: center;
+        }
+
+        .pdf-preview-wrapper { 
+            background: #f5f5f5; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); 
+            margin-bottom: 2rem; 
+            height: clamp(300px, 50vh, 600px);
+            transition: box-shadow 0.3s ease;
+        }
+
+        #pdfPreview { width: 100%; height: 100%; border: none; border-radius: 15px; }
+
+        .btn-download, .btn-back { 
+            border-radius: 15px; 
+            padding: 15px 30px; 
+            box-shadow: 0 4px 15px rgba(245, 245, 245, 0.15);
+            font-weight: 800; 
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-download { 
+            background: var(--text-primary); 
+            border: none; 
+            color: var(--bg-primary);
+        }
+
+        .btn-download:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 35px rgba(245, 245, 245, 0.35);
+            background: var(--text-secondary);
+            color: var(--bg-primary);
+        }
+
+        .btn-download:active {
+            transform: translateY(-2px);
+        }
+
+        .btn-back { 
+            background: var(--border-color); 
+            border: 1.5px solid var(--border-color); 
+            color: var(--text-primary);
+        }
+
+        .btn-back:hover { 
+            background: var(--border-hover); 
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(245, 245, 245, 0.25);
+        }
+
+        .btn-back:active {
+            transform: translateY(-2px);
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .loading-overlay { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.8); 
+            z-index: 2000; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .loading-content { text-align: center; color: white; }
+
+        .spinner-glow { 
+            width: 70px; 
+            height: 70px; 
+            border: 4px solid rgba(232, 232, 232, 0.15); 
+            border-top-color: #f5f5f5; 
+            border-right-color: #e8e8e8; 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto 2rem; 
+            box-shadow: 0 0 30px rgba(245, 245, 245, 0.2);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text { 
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            color: #f5f5f5; 
+            font-weight: 600;
+        }
+
+        .alert-custom { 
+            background: rgba(255, 100, 100, 0.15); 
+            border: 1.5px solid rgba(255, 100, 100, 0.5); 
+            color: #ff9999; 
+            border-radius: 12px; 
+            padding: 1rem; 
+            margin-bottom: 2rem;
+        }
+
+        footer { 
+            background: var(--bg-navbar); 
+            border-top: 1px solid var(--border-color); 
+            padding: 2rem 20px; 
+            margin-top: 2rem;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        footer p { 
+            color: var(--text-muted); 
+            margin: 0;
+            font-size: clamp(0.85rem, 2vw, 1rem);
+        }
+
+        @media (max-width: 1200px) {
+            .upload-container, .preview-container { padding: clamp(20px, 4vw, 35px); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-brand { font-size: 1.1rem; letter-spacing: 0.5px; }
+            .page-container { padding: 15px 10px; }
+            .home-hero { padding: 20px 12px; min-height: 50vh; }
+            .home-hero h1 { font-size: clamp(2rem, 6vw, 3rem); }
+            .home-hero p { font-size: clamp(1rem, 3vw, 1.3rem); }
+            .pdf-preview-wrapper { height: clamp(250px, 55vh, 450px); }
+            .btn-hero { padding: 11px 25px; font-size: 0.95rem; }
+            .upload-container, .preview-container { padding: 20px 12px; border-radius: 15px; }
+            .upload-container h2, .preview-container h2 { font-size: clamp(1.3rem, 4vw, 1.8rem); margin-bottom: 1.5rem; }
+            .upload-box { padding: 25px 12px; margin: 0.75rem 0; }
+            .form-label { font-size: 0.9rem; margin-bottom: 0.3rem; }
+            .form-control, .form-select { padding: 9px 10px; font-size: 0.9rem; }
+            .btn-generate { padding: 11px 20px; font-size: 0.85rem; margin-bottom: 0.5rem; }
+            .btn-download, .btn-back { padding: 10px 15px; font-size: 0.8rem; margin-bottom: 0.4rem; }
+            .button-container { gap: 0.3rem; }
+        }
+
+        @media (max-width: 480px) {
+            .navbar { padding: 0.5rem 0; }
+            .navbar-brand { font-size: 1rem; letter-spacing: 0px; }
+            .theme-toggle-btn { padding: 5px 10px; font-size: 0.75rem; }
+            .page-container { padding: 12px 8px; }
+            .home-hero { padding: 15px 10px; min-height: 45vh; }
+            .home-hero h1 { font-size: clamp(1.6rem, 5vw, 2.3rem); margin-bottom: 0.75rem; }
+            .home-hero p { font-size: clamp(0.9rem, 2.5vw, 1.1rem); margin-bottom: 1.5rem; }
+            .upload-container, .preview-container { padding: 15px 10px; border-radius: 12px; }
+            .upload-container h2, .preview-container h2 { font-size: clamp(1.2rem, 3.5vw, 1.6rem); margin-bottom: 1rem; }
+            .upload-box { 
+                padding: 18px 10px; 
+                border-radius: 10px;
+                margin: 0.5rem 0;
+                border: 2px dashed var(--border-color);
+            }
+            .upload-box i { font-size: clamp(2rem, 7vw, 2.6rem); margin-bottom: 0.4rem; }
+            .upload-box label div { font-size: 0.9rem; margin-top: 0.4rem; }
+            .upload-box small { font-size: 0.75rem; }
+            .form-label { font-size: 0.85rem; margin-bottom: 0.25rem; }
+            .form-control, .form-select { padding: 8px 8px; font-size: 0.85rem; }
+            .row.g-3 { gap: 0.5rem !important; }
+            .btn-generate { 
+                padding: 10px 16px; 
+                font-size: 0.8rem; 
+                margin-bottom: 0.4rem;
+                border-radius: 12px;
+            }
+            .btn-hero { padding: 10px 20px; font-size: 0.9rem; }
+            .btn-download, .btn-back { 
+                padding: 9px 12px;
+                font-size: 0.75rem;
+                border-radius: 10px;
+                margin-bottom: 0.3rem;
+            }
+            .button-container { gap: 0.25rem; }
+            .pdf-preview-wrapper { 
+                height: clamp(180px, 50vh, 300px);
+                margin-bottom: 0.75rem;
+                border-radius: 10px;
+            }
+            footer { padding: 1.5rem 12px; margin-top: 1.5rem; }
+            footer p { font-size: 0.8rem; }
+        }
+
+        @media (max-width: 360px) {
+            .navbar-brand { font-size: 0.95rem; }
+            .page-container { padding: 10px 6px; }
+            .home-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); }
+            .upload-container, .preview-container { padding: 12px 8px; }
+            .upload-box { padding: 15px 8px; }
+            .btn-download, .btn-back { 
+                padding: 8px 10px;
+                font-size: 0.7rem;
+            }
+            .form-control, .form-select { padding: 7px 6px; font-size: 0.8rem; }
+        }
+
+        @media (max-height: 600px) {
+            .home-hero { min-height: 40vh; padding: 15px; }
+            .page-container { padding: 15px 10px; }
+            .pdf-preview-wrapper { height: clamp(150px, 45vh, 300px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div id="cursor-trail" style="position: fixed; pointer-events: none; z-index: 1; top: 0; left: 0;"></div>
+    
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <span class="navbar-brand"><i class="fas fa-brain"></i> QURIO</span>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+                <i class="fas fa-moon"></i> <span id="themeLabel">Light</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- PAGE 1: HOME -->
+    <div id="page-home" class="page-container active">
+        <div class="home-hero">
+            <div>
+                <h1><i class="fas fa-sparkles"></i> QURIO</h1>
+                <p>Transform Your Study Materials Into AI-Powered Question Papers</p>
+                <button class="btn btn-hero" onclick="goToPage('page-upload')"><i class="fas fa-rocket"></i> Get Started</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: UPLOAD -->
+    <div id="page-upload" class="page-container">
+        <div class="container-fluid">
+            <div class="upload-container">
+                <h2 class="text-center"><i class="fas fa-file-pdf"></i> Upload Your Content</h2>
+                <div id="errorAlert" class="alert-custom" style="display:none;"></div>
+                <form id="uploadForm">{% csrf_token %}
+                    <div class="upload-box file-input-wrapper">
+                        <label for="fileUpload" class="d-block">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div style="font-weight: bold; margin-top: 0.5rem;">Click to upload or drag and drop</div>
+                            <small>PDF files up to 50MB</small>
+                        </label>
+                        <input type="file" name="study_file" id="fileUpload" accept=".pdf" required>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label"><i class="fas fa-sliders-h"></i> Difficulty Level</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label"><i class="fas fa-list-ol"></i> Number of Questions</label>
+                            <input type="number" name="num_questions" class="form-control" value="5" min="1" max="20">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-generate"><i class="fas fa-magic"></i> Generate</button>
+                    <button type="button" class="btn btn-back" onclick="goToPage('page-home')"><i class="fas fa-arrow-left"></i> Back to Home</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: PREVIEW -->
+    <div id="page-preview" class="page-container">
+        <div class="container-fluid">
+            <div class="preview-container">
+                <h2><i class="fas fa-file-pdf"></i> Your Generated Questions</h2>
+                <div class="pdf-preview-wrapper">
+                    <iframe id="pdfPreview"></iframe>
+                </div>
+                <div class="button-container">
+                    <button id="downloadBtn" class="btn btn-download"><i class="fas fa-download"></i> Download PDF</button>
+                    <button class="btn btn-back" onclick="goToPage('page-upload')"><i class="fas fa-arrow-left"></i> Generate Another</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-glow"></div>
+            <div class="loading-text">Generating Your Questions...</div>
+            <p style="color: #a0d0ff; margin-top: 1rem;">This may take a minute</p>
+        </div>
+    </div>
+
+    <footer class="text-center">
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Cursor Trail Effect
+        class CursorTrail {
+            constructor() {
+                this.particles = [];
+                this.maxParticles = 30;
+                this.container = document.getElementById('cursor-trail');
+                this.mouseX = 0;
+                this.mouseY = 0;
+                
+                document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+                setInterval(() => this.update(), 30);
+            }
+
+            onMouseMove(e) {
+                this.mouseX = e.clientX;
+                this.mouseY = e.clientY;
+                this.createParticle(e.clientX, e.clientY);
+            }
+
+            createParticle(x, y) {
+                const particle = document.createElement('div');
+                const size = Math.random() * 8 + 4;
+                const isDarkTheme = !document.documentElement.classList.contains('light-theme');
+                const color = isDarkTheme 
+                    ? `rgba(245, 245, 245, ${Math.random() * 0.4 + 0.3})`
+                    : `rgba(26, 26, 26, ${Math.random() * 0.3 + 0.2})`;
+                
+                particle.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: radial-gradient(circle, ${color}, transparent);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    left: ${x}px;
+                    top: ${y}px;
+                    box-shadow: 0 0 ${size * 2}px ${color};
+                `;
+                
+                this.container.appendChild(particle);
+                
+                this.particles.push({
+                    element: particle,
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2 - 1,
+                    life: 1,
+                    size: size
+                });
+
+                if (this.particles.length > this.maxParticles) {
+                    const old = this.particles.shift();
+                    old.element.remove();
+                }
+            }
+
+            update() {
+                this.particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    p.vy += 0.1; // gravity
+
+                    p.element.style.left = p.x + 'px';
+                    p.element.style.top = p.y + 'px';
+                    p.element.style.opacity = p.life;
+
+                    if (p.life <= 0) {
+                        p.element.remove();
+                        this.particles.splice(index, 1);
+                    }
+                });
+            }
+        }
+
+        // Initialize cursor trail
+        new CursorTrail();
+        // Theme Toggle
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+        }
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const themeLabel = document.getElementById('themeLabel');
+            const themeBtnIcon = document.querySelector('.theme-toggle-btn i');
+            
+            if (theme === 'light') {
+                html.classList.add('light-theme');
+                themeLabel.textContent = 'Dark';
+                themeBtnIcon.className = 'fas fa-sun';
+            } else {
+                html.classList.remove('light-theme');
+                themeLabel.textContent = 'Light';
+                themeBtnIcon.className = 'fas fa-moon';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        }
+
+        // Particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 50 + 10 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = Math.random() * 20 + 15 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Page Navigation
+        function goToPage(pageId) {
+            document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // File Upload & Form
+        const fileInput = document.getElementById('fileUpload');
+        const uploadBox = document.querySelector('.upload-box');
+        const uploadForm = document.getElementById('uploadForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const pdfPreview = document.getElementById('pdfPreview');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorAlert = document.getElementById('errorAlert');
+
+        uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.style.borderColor = 'rgba(245, 245, 245, 0.6)'; });
+        uploadBox.addEventListener('dragleave', () => { uploadBox.style.borderColor = 'rgba(232, 232, 232, 0.3)'; });
+        uploadBox.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; updateUploadBox(e.dataTransfer.files[0]); } });
+        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) updateUploadBox(e.target.files[0]); });
+
+        function updateUploadBox(file) { 
+            uploadBox.querySelector('label').innerHTML = '<i class="fas fa-check-circle" style="font-size: 3rem; color: #00c853; margin-bottom: 0.5rem;"></i><div style="color: #00c853; font-weight: bold; margin-top: 0.5rem;">' + file.name + '</div><small>Ready to generate</small>'; 
+        }
+
+        function showError(msg) { 
+            errorAlert.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + msg; 
+            errorAlert.style.display = 'block'; 
+        }
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorAlert.style.display = 'none';
+            if (!fileInput.files[0]) { showError('Please upload a PDF'); return; }
+            loadingOverlay.classList.add('show');
+            try {
+                const formData = new FormData(uploadForm);
+                const res = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                console.log('Response:', data);
+                if (data.error) {
+                    loadingOverlay.classList.remove('show');
+                    showError(data.error);
+                    return;
+                }
+                if (data.pdf) {
+                    const bytes = atob(data.pdf);
+                    const arr = new Uint8Array(bytes.length);
+                    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                    const blob = new Blob([arr], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    pdfPreview.src = url;
+                    downloadBtn.onclick = () => { const a = document.createElement('a'); a.href = url; a.download = data.filename || 'questions.pdf'; a.click(); };
+                    loadingOverlay.classList.remove('show');
+                    goToPage('page-preview');
+                } else {
+                    throw new Error('No PDF in response');
+                }
+            } catch (err) { loadingOverlay.classList.remove('show'); showError('Generation failed: ' + err.message); console.error(err); }
+        });
+
+        // Initialize
+        initTheme();
+        createParticles();
+    </script>
+</body>
+</html>
