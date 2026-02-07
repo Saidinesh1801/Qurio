@@ -1,0 +1,8 @@
+django>=4.0
+google-generativeai
+PyPDF2
+python-dotenv
+reportlab
+python-docx
+
+django-ratelimit

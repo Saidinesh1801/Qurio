@@ -1,0 +1,354 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question History - Qurio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark mode: Matte Black + Frost White */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-navbar: rgba(10, 10, 10, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --error: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+
+        html.light-theme {
+            /* Light mode: Frost Blue + Frost White */
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-navbar: rgba(240, 248, 255, 0.85);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: 
+                linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        html.light-theme body {
+            background: 
+                linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+
+        html.light-theme body::before {
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(100, 180, 220, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(150, 200, 230, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(180, 215, 240, 0.18) 0%, transparent 50%);
+        }
+
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+        
+        .navbar { 
+            background: transparent; 
+            border-bottom: none; 
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand { 
+            font-size: 1.5rem;
+            font-weight: 800; 
+            color: var(--text-primary); 
+            letter-spacing: 2px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand:hover {
+            color: var(--text-primary);
+        }
+        
+        .logo-img {
+            height: 90px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        html.light-theme .logo-img {
+            filter: brightness(0);
+        }
+        
+        .container { 
+            padding-top: 2rem; 
+            position: relative;
+            z-index: 1;
+        }
+        
+        .page-title {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+        
+        .filter-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 10px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-select option { background: var(--bg-primary); }
+        
+        .question-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        
+        .question-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .question-text {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        
+        .answer-text {
+            color: #4ade80;
+            padding-left: 1rem;
+            border-left: 3px solid #4ade80;
+        }
+        
+        .badge-topic { background: var(--accent); color: #fff; }
+        .badge-difficulty { background: #8b5cf6; }
+        .badge-type { background: #f59e0b; color: #000; }
+        
+        .btn-filter {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 25px;
+        }
+        
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.35);
+        }
+        
+        .btn-back {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            padding: 10px 25px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-back:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .pagination .page-link {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            color: var(--text-secondary);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        
+        .pagination .page-link:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; color: var(--accent); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="ms-auto">
+                <a href="/" class="btn btn-back"><i class="fas fa-home"></i> Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-history"></i> Question History</h1>
+        
+        <div class="filter-card">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-muted">Filter by Topic</label>
+                    <select name="topic" class="form-select">
+                        <option value="">All Topics</option>
+                        {% for t in topics %}
+                        <option value="{{ t }}" {% if t == current_topic %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted">Filter by Difficulty</label>
+                    <select name="difficulty" class="form-select">
+                        <option value="">All Difficulties</option>
+                        <option value="Easy" {% if current_difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                        <option value="Medium" {% if current_difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                        <option value="Hard" {% if current_difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-filter w-100"><i class="fas fa-filter"></i> Apply Filters</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if questions %}
+            {% for q in questions %}
+            <div class="question-card">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge badge-topic">{{ q.topic }}</span>
+                    <span class="badge badge-difficulty">{{ q.difficulty }}</span>
+                    <span class="badge badge-type">{{ q.get_question_type_display }}</span>
+                    <span class="badge bg-secondary">{{ q.marks }} marks</span>
+                </div>
+                <p class="question-text">{{ q.text }}</p>
+                {% if q.answer %}
+                <p class="answer-text"><strong>Answer:</strong> {{ q.answer }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if questions.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if questions.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ questions.previous_page_number }}{% if current_topic %}&topic={{ current_topic }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in questions.paginator.page_range %}
+                        {% if questions.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > questions.number|add:'-3' and num < questions.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if current_topic %}&topic={{ current_topic }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if questions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ questions.next_page_number }}{% if current_topic %}&topic={{ current_topic }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No Questions Found</h3>
+                <p>Generate some questions to see them here!</p>
+                <a href="/" class="btn btn-filter mt-3"><i class="fas fa-plus"></i> Generate Questions</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

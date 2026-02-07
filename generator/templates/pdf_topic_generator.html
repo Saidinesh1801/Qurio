@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qurio - Intelligent Question Generator</title>
+    <title>Qurio - PDF Topic Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -302,8 +302,8 @@
 
     <header class="hero-section text-center">
         <div class="container">
-            <h1 class="display-3 fw-bold">AI-Powered Question Generator</h1>
-            <p class="lead">Transform your study materials into intelligent question papers using advanced AI</p>
+            <h1 class="display-3 fw-bold">AI-Powered PDF Topic Generator</h1>
+            <p class="lead">Upload a PDF and get a list of topics from it.</p>
             <a href="#generate" class="btn btn-glow btn-lg mt-3">
                 <i class="fas fa-rocket"></i> Get Started
             </a>
@@ -316,7 +316,7 @@
                 <div class="col-lg-8">
                     <div class="upload-container">
                         <h2 class="text-center">
-                            <i class="fas fa-file-pdf"></i> Upload Your Content
+                            <i class="fas fa-file-pdf"></i> Upload Your PDF
                         </h2>
                         
                         {% if error %}
@@ -335,46 +335,11 @@
                                     <div>Click to upload or drag and drop</div>
                                     <small style="color: rgba(176, 176, 255, 0.7);">PDF files up to 50MB</small>
                                 </label>
-                                <input type="file" name="study_file" id="fileUpload" accept=".pdf" required>
-                            </div>
-                            
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-sliders-h"></i> Difficulty Level
-                                    </label>
-                                    <select name="difficulty" class="form-select">
-                                        <option value="Easy">Easy</option>
-                                        <option value="Medium" selected>Medium</option>
-                                        <option value="Hard">Hard</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-calculator"></i> Question Type
-                                    </label>
-                                    <select name="question_type" class="form-select">
-                                        <option value="mixed" selected>Mixed (Theory + Numerical)</option>
-                                        <option value="numerical">Numerical Only (with Solutions)</option>
-                                        <option value="theoretical">Theoretical Only</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-list-ol"></i> Number of Questions
-                                    </label>
-                                    <input type="number" name="num_questions" class="form-control" value="5" min="1" max="20">
-                                </div>
-                            </div>
-                            
-                            <div class="info-box mb-4" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 10px; padding: 15px;">
-                                <small style="color: #b0b0ff;">
-                                    <i class="fas fa-info-circle"></i> <strong>Numerical problems</strong> include step-by-step solutions with detailed explanations for each calculation step.
-                                </small>
+                                <input type="file" name="pdf_file" id="fileUpload" accept=".pdf" required>
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-magic"></i> Generate Questions
+                                <i class="fas fa-magic"></i> Generate Topics
                             </button>
                         </form>
                     </div>

@@ -1,0 +1,430 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qurio - Features</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark mode: Matte Black + Frost White */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-navbar: rgba(10, 10, 10, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --error: #ef4444;
+            --purple: #8b5cf6;
+            --orange: #f59e0b;
+            --pink: #ec4899;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+
+        html.light-theme {
+            /* Light mode: Frost Blue + Frost White */
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-navbar: rgba(240, 248, 255, 0.85);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: 
+                linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        html.light-theme body {
+            background: 
+                linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+
+        html.light-theme body::before {
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(100, 180, 220, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(150, 200, 230, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(180, 215, 240, 0.18) 0%, transparent 50%);
+        }
+
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+
+        .navbar { 
+            background: transparent; 
+            border-bottom: none; 
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand { 
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 90px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        html.light-theme .logo-img {
+            filter: brightness(0);
+        }
+
+        .nav-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: var(--text-tertiary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-accent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--card-accent);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-card .feature-list li {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+            padding: 0.3rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-card .feature-list li i {
+            color: var(--success);
+            font-size: 0.75rem;
+        }
+
+        .feature-arrow {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-arrow {
+            color: var(--card-accent);
+            transform: translateX(5px);
+        }
+
+        /* Card accent colors */
+        .card-questions { --card-accent: var(--accent); }
+        .card-questions .feature-icon { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); }
+        
+        .card-notes { --card-accent: var(--success); }
+        .card-notes .feature-icon { background: linear-gradient(135deg, var(--success), #059669); }
+        
+        .card-topics { --card-accent: var(--purple); }
+        .card-topics .feature-icon { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+        
+        .card-history { --card-accent: var(--orange); }
+        .card-history .feature-icon { background: linear-gradient(135deg, var(--orange), #d97706); }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <a href="{% url 'index' %}" class="navbar-brand">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'index' %}" class="nav-btn">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="{% url 'history' %}" class="nav-btn">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-sparkles" style="color: var(--accent);"></i> Our Features</h1>
+            <p>Choose a feature to get started with AI-powered study tools</p>
+        </div>
+
+        <div class="features-grid">
+            <!-- Question Generator -->
+            <a href="{% url 'upload' %}" class="feature-card card-questions">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Question Generator</h3>
+                <p>Generate AI-powered questions from your study materials with multiple question types and difficulty levels.</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Multiple Choice Questions</li>
+                    <li><i class="fas fa-check"></i> True/False Questions</li>
+                    <li><i class="fas fa-check"></i> Short & Long Answer</li>
+                    <li><i class="fas fa-check"></i> Numerical Problems</li>
+                    <li><i class="fas fa-check"></i> Download as PDF</li>
+                </ul>
+                <i class="fas fa-arrow-right feature-arrow"></i>
+            </a>
+
+            <!-- Short Notes -->
+            <a href="{% url 'short_notes' %}" class="feature-card card-notes">
+                <div class="feature-icon">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h3>Short Notes Generator</h3>
+                <p>Create concise, well-organized study notes from your PDFs with key points and formulas highlighted.</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Organized Headings</li>
+                    <li><i class="fas fa-check"></i> Key Points Highlighted</li>
+                    <li><i class="fas fa-check"></i> Formula Extraction</li>
+                    <li><i class="fas fa-check"></i> Memory Tips Included</li>
+                    <li><i class="fas fa-check"></i> Download as PDF</li>
+                </ul>
+                <i class="fas fa-arrow-right feature-arrow"></i>
+            </a>
+
+            <!-- Topic Extraction -->
+            <a href="{% url 'pdf_topic_generator' %}" class="feature-card card-topics">
+                <div class="feature-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3>Topic Extraction</h3>
+                <p>Extract and understand main topics from your documents with detailed explanations and examples.</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Main Topic Identification</li>
+                    <li><i class="fas fa-check"></i> Concept Explanations</li>
+                    <li><i class="fas fa-check"></i> Math Problem Solutions</li>
+                    <li><i class="fas fa-check"></i> Interactive Display</li>
+                </ul>
+                <i class="fas fa-arrow-right feature-arrow"></i>
+            </a>
+
+            <!-- History -->
+            <a href="{% url 'history' %}" class="feature-card card-history">
+                <div class="feature-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Question History</h3>
+                <p>Access all your previously generated questions, filter by topic or difficulty, and review anytime.</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> View Past Questions</li>
+                    <li><i class="fas fa-check"></i> Filter by Topic</li>
+                    <li><i class="fas fa-check"></i> Filter by Difficulty</li>
+                    <li><i class="fas fa-check"></i> Pagination Support</li>
+                </ul>
+                <i class="fas fa-arrow-right feature-arrow"></i>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script>
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            applyTheme(saved);
+        }
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                html.classList.add('light-theme');
+                if (icon) icon.className = 'fas fa-sun';
+            } else {
+                html.classList.remove('light-theme');
+                if (icon) icon.className = 'fas fa-moon';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        initTheme();
+    </script>
+</body>
+</html>

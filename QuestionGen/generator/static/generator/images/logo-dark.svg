@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100">
+  <!-- Q with question mark integrated -->
+  <g fill="#1e1b4b">
+    <!-- Main Q circle -->
+    <path d="M60 10 C35 10, 15 30, 15 55 C15 75, 30 90, 50 90 L70 90 L75 98 L85 90 C100 85, 105 70, 105 55 C105 30, 85 10, 60 10 Z M60 20 C80 20, 95 35, 95 55 C95 70, 85 80, 70 82 L65 75 L55 82 C40 80, 25 68, 25 55 C25 35, 40 20, 60 20 Z"/>
+    <!-- Question mark dot -->
+    <circle cx="60" cy="70" r="5"/>
+    <!-- Question mark curve -->
+    <path d="M50 35 C50 28, 55 24, 65 24 C75 24, 82 30, 82 40 C82 48, 75 52, 68 55 L68 60 L58 60 L58 52 C58 48, 65 45, 70 42 C72 40, 72 36, 68 34 C64 32, 58 34, 56 38 Z"/>
+  </g>
+</svg>

@@ -13,11 +13,13 @@ from .models import Question
 dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
-api_key = os.environ.get('GEMINI_API_KEY')
-if not api_key:
-	raise ValueError("GEMINI_API_KEY environment variable not set")
-
-genai.configure(api_key=api_key)
+def get_gemini_model():
+	"""Get configured Gemini model, raises error if API key not set"""
+	api_key = os.environ.get('GEMINI_API_KEY')
+	if not api_key:
+		raise ValueError("GEMINI_API_KEY environment variable not set")
+	genai.configure(api_key=api_key)
+	return genai.GenerativeModel('gemini-2.5-flash')
 
 def extract_text_from_pdf(pdf_file):
 	"""Extract text from uploaded PDF file"""
@@ -27,11 +29,46 @@ def extract_text_from_pdf(pdf_file):
 		text += page.extract_text()
 	return text
 
-def generate_questions_with_gemini(text, difficulty, num_questions=5):
+def generate_questions_with_gemini(text, difficulty, num_questions=5, question_type="mixed"):
 	"""Generate questions using Gemini AI"""
-	model = genai.GenerativeModel('gemini-2.5-flash')
+	model = get_gemini_model()
 	
-	prompt = f"""Based on the following text, generate {num_questions} {difficulty} level questions with answers.
+	if question_type == "numerical":
+		prompt = f"""Based on the following text, generate {num_questions} {difficulty} level NUMERICAL/MATHEMATICAL problems with detailed step-by-step solutions.
+
+IMPORTANT REQUIREMENTS:
+1. Generate ONLY numerical/mathematical problems based on the concepts in the text
+2. Each problem must involve calculations, formulas, or mathematical reasoning
+3. The answer MUST include a complete step-by-step solution with:
+   - Given values clearly stated
+   - Formula/method used
+   - Each calculation step explained
+   - Final answer clearly stated
+
+4. Use SIMPLE PLAIN TEXT format:
+   - Write "x^2" for x squared, "sqrt(x)" for square root
+   - Use * for multiplication, / for division
+   - Example step format:
+     "Step 1: Identify given values - Mass = 10 kg, Velocity = 5 m/s
+      Step 2: Apply formula - Kinetic Energy = (1/2) * m * v^2
+      Step 3: Substitute values - KE = (1/2) * 10 * 5^2 = (1/2) * 10 * 25
+      Step 4: Calculate - KE = 125 Joules
+      Final Answer: The kinetic energy is 125 Joules"
+
+Text:
+{text}
+
+Please return ONLY a JSON array with this exact structure, no markdown, no code blocks, just pure JSON:
+[
+	{{"question": "...", "answer": "...", "explanation": "...", "marks": 2, "type": "numerical"}},
+	{{"question": "...", "answer": "...", "explanation": "...", "marks": 2, "type": "numerical"}}
+]
+
+The "answer" field should contain the final answer only.
+The "explanation" field should contain the complete step-by-step solution."""
+
+	else:
+		prompt = f"""Based on the following text, generate {num_questions} {difficulty} level questions with answers.
 
 IMPORTANT FORMATTING RULES:
 1. Generate a mix of:
@@ -44,7 +81,7 @@ IMPORTANT FORMATTING RULES:
 	 - Write math like: "2x + 5 = 15, solve for x" instead of using complex symbols
 	 - Use words like "power of", "square root of", "multiply", "divide" instead of symbols
 	 - Example: "If 2 times a number plus 5 equals 15, what is the number?"
-	 - Make answers simple and clear: "The answer is 5"
+	 - For numerical problems, include step-by-step explanation in the "explanation" field
 
 3. Make sure approximately 50% are theoretical and 50% are mathematical/numerical problems.
 4. All questions and answers must be CLEAR and EASILY UNDERSTANDABLE.
@@ -54,9 +91,12 @@ Text:
 
 Please return ONLY a JSON array with this exact structure, no markdown, no code blocks, just pure JSON:
 [
-	{{"question": "...", "answer": "...", "marks": 1}},
-	{{"question": "...", "answer": "...", "marks": 1}}
+	{{"question": "...", "answer": "...", "explanation": "", "marks": 1, "type": "theoretical"}},
+	{{"question": "...", "answer": "...", "explanation": "Step 1: ... Step 2: ... Final Answer: ...", "marks": 2, "type": "numerical"}}
 ]
+
+For theoretical questions, "explanation" can be empty or contain additional context.
+For numerical questions, "explanation" MUST contain the step-by-step solution.
 
 REMEMBER: Keep all questions and answers in plain, simple English with basic mathematical notation only."""
 	
@@ -92,12 +132,13 @@ def index(request):
 		try:
 			print("DEBUG: POST request received")
 			
-			# Get uploaded file, difficulty, and number of questions
+			# Get uploaded file, difficulty, number of questions, and question type
 			study_file = request.FILES.get('study_file')
 			difficulty = request.POST.get('difficulty', 'Medium')
 			num_questions = int(request.POST.get('num_questions', 5))
+			question_type = request.POST.get('question_type', 'mixed')
 			
-			print(f"DEBUG: File: {study_file}, Difficulty: {difficulty}, Questions: {num_questions}")
+			print(f"DEBUG: File: {study_file}, Difficulty: {difficulty}, Questions: {num_questions}, Type: {question_type}")
 			
 			if not study_file:
 				print("ERROR: No file uploaded")
@@ -115,7 +156,7 @@ def index(request):
 			
 			# Generate questions with Gemini
 			print("DEBUG: Generating questions with Gemini...")
-			questions_data = generate_questions_with_gemini(text, difficulty, num_questions)
+			questions_data = generate_questions_with_gemini(text, difficulty, num_questions, question_type)
 			
 			print(f"DEBUG: Generated {len(questions_data)} questions")
 			
@@ -135,7 +176,9 @@ def index(request):
 					topic=topic,
 					difficulty=difficulty,
 					marks=q_data.get('marks', 1),
-					answer=q_data.get('answer', '')
+					answer=q_data.get('answer', ''),
+					explanation=q_data.get('explanation', ''),
+					question_type=q_data.get('type', 'mixed')
 				)
 				saved_questions.append(question)
 			
