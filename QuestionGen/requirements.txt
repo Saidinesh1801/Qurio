@@ -6,3 +6,4 @@ reportlab
 python-docx
 
 django-ratelimit
+gunicorn
