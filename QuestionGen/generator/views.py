@@ -23,10 +23,10 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 api_key = os.environ.get('GEMINI_API_KEY')
-if not api_key:
-    raise ValueError("GEMINI_API_KEY environment variable not set")
-
-genai.configure(api_key=api_key)
+if api_key:
+    genai.configure(api_key=api_key)
+else:
+    logger.warning("GEMINI_API_KEY environment variable not set")
 
 def extract_text_from_pdf(pdf_file):
     """Extract text from uploaded PDF file"""

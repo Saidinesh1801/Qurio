@@ -16,9 +16,11 @@ def register_unicode_fonts():
     try:
         # Try fonts with good Unicode/symbol support (in order of preference)
         font_paths = [
-            ("C:/Windows/Fonts/seguisym.ttf", "SegoeSymbol"),  # Best for symbols
+            ("C:/Windows/Fonts/seguisym.ttf", "SegoeSymbol"),
             ("C:/Windows/Fonts/segoeui.ttf", "SegoeUI"),
             ("C:/Windows/Fonts/arial.ttf", "Arial"),
+            ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVuSans"),
+            ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "LiberationSans"),
         ]
         registered_fonts = []
         for font_path, font_name in font_paths:

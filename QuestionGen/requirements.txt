@@ -7,3 +7,4 @@ python-docx
 
 django-ratelimit
 gunicorn
+whitenoise
