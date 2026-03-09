@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign Up - Qurio{% endblock %}
+
+{% block extra_css %}
+.auth-container { max-width: 420px; margin: 3rem auto; }
+.auth-container h2 { color: var(--text-primary); text-align: center; font-weight: 700; margin-bottom: 0.5rem; }
+.auth-container h2 i { color: var(--accent); }
+.auth-sub { text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem; }
+.auth-form label { color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.4rem; }
+.auth-form input {
+    width: 100%; padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--border-color); background: var(--bg-primary);
+    color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem;
+}
+.auth-form input:focus { border-color: var(--accent); outline: none; }
+.auth-form .helptext { color: var(--text-muted); font-size: 0.75rem; margin-top: -0.75rem; margin-bottom: 1rem; display: block; }
+.auth-form .helptext ul { padding-left: 1.2rem; margin: 0.25rem 0 0; }
+.auth-link { text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem; }
+.auth-link a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.auth-link a:hover { text-decoration: underline; }
+.auth-errors { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--error); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.85rem; }
+.auth-errors ul { list-style: none; padding: 0; margin: 0; }
+{% endblock %}
+
+{% block nav_items %}
+<a href="{% url 'index' %}" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="auth-container glass-card">
+        <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+        <p class="auth-sub">Join Qurio to start generating questions</p>
+
+        {% if form.errors %}
+        <div class="auth-errors">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}<p>{{ error }}</p>{% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            <label for="id_username">Username</label>
+            <input type="text" name="username" id="id_username" placeholder="Choose a username" required autofocus>
+            <label for="id_password1">Password</label>
+            <input type="password" name="password1" id="id_password1" placeholder="Create a password" required>
+            <label for="id_password2">Confirm Password</label>
+            <input type="password" name="password2" id="id_password2" placeholder="Confirm your password" required>
+            <button type="submit" class="btn-primary-q" style="margin-top:0.5rem;">
+                <i class="fas fa-user-plus"></i> Sign Up
+            </button>
+        </form>
+        <div class="auth-link">
+            Already have an account? <a href="{% url 'login' %}">Log in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

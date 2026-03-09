@@ -1,0 +1,267 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question History - Qurio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --error: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+        html.light-theme {
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text-secondary); position: relative;
+        }
+        html.light-theme body {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+        body::before {
+            content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(255,255,255,0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.04) 0%, transparent 45%),
+                        radial-gradient(ellipse at 40% 80%, rgba(255,255,255,0.03) 0%, transparent 50%);
+            pointer-events: none; z-index: 0; animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+        html.light-theme body::before {
+            background: radial-gradient(ellipse at 20% 20%, rgba(100,180,220,0.25) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(150,200,230,0.2) 0%, transparent 45%),
+                        radial-gradient(ellipse at 40% 80%, rgba(180,215,240,0.18) 0%, transparent 50%);
+        }
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+
+        .navbar { background: transparent; border-bottom: none; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { display: flex; align-items: center; text-decoration: none; }
+        .logo-img { height: 90px; width: auto; filter: brightness(0) invert(1); }
+        html.light-theme .logo-img { filter: brightness(0); }
+        .nav-btn {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary);
+            font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; transition: all 0.2s ease;
+            font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+            backdrop-filter: var(--glass-blur);
+        }
+        .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+
+        .main-content { max-width: 900px; margin: 0 auto; padding: 1rem 1rem 2rem; position: relative; z-index: 1; }
+        .page-title { text-align: center; margin-bottom: 2rem; }
+        .page-title h1 { color: var(--text-primary); font-size: 2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .page-title h1 i { color: var(--accent); }
+        .page-title p { color: var(--text-muted); margin-top: 0.3rem; }
+
+        .filter-card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 1.25rem; margin-bottom: 2rem; backdrop-filter: var(--glass-blur);
+            display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end;
+        }
+        .filter-card select, .filter-card input {
+            flex: 1; min-width: 150px; padding: 10px 14px; border-radius: 10px;
+            border: 1px solid var(--border-color); background: var(--bg-primary);
+            color: var(--text-primary); font-size: 0.9rem;
+        }
+        .filter-card select option { background: var(--bg-primary); }
+        .filter-card button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border: none;
+            color: white; font-weight: 600; border-radius: 10px; padding: 10px 24px; cursor: pointer;
+            transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;
+        }
+        .filter-card button:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(77,166,217,0.35); }
+
+        .question-card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px;
+            padding: 1.25rem; margin-bottom: 0.75rem; transition: all 0.3s ease;
+            backdrop-filter: var(--glass-blur);
+        }
+        .question-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .q-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 0.75rem; }
+        .q-badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; color: white;
+        }
+        .q-badge.topic { background: var(--accent); }
+        .q-badge.diff-Easy { background: var(--success); }
+        .q-badge.diff-Medium { background: #f59e0b; color: #000; }
+        .q-badge.diff-Hard { background: var(--error); }
+        .q-badge.type { background: #8b5cf6; }
+        .q-badge.marks { background: rgba(255,255,255,0.1); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .q-badge.bloom { background: #06b6d4; }
+        .q-time { color: var(--text-muted); font-size: 0.72rem; margin-left: auto; white-space: nowrap; }
+        .q-actions { display: flex; gap: 2px; margin-left: 0.5rem; }
+        .q-actions button, .q-actions a {
+            background: none; border: none; cursor: pointer; padding: 4px 8px;
+            border-radius: 6px; transition: all 0.2s; font-size: 0.85rem; text-decoration: none;
+        }
+        .q-actions .btn-del { color: var(--error); }
+        .q-actions .btn-del:hover { background: rgba(239,68,68,0.15); }
+        .q-actions .btn-eval { color: var(--accent); }
+        .q-actions .btn-eval:hover { background: rgba(77,166,217,0.15); }
+
+        .q-text { color: var(--text-primary); font-weight: 600; font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.5rem; }
+        .q-answer {
+            color: var(--success); font-size: 0.88rem; line-height: 1.5;
+            padding: 0.6rem 0.8rem; border-left: 3px solid var(--success);
+            background: rgba(16,185,129,0.05); border-radius: 0 8px 8px 0;
+        }
+
+        .empty-state {
+            text-align: center; padding: 4rem 2rem; color: var(--text-muted);
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; backdrop-filter: var(--glass-blur);
+        }
+        .empty-state i { font-size: 3.5rem; margin-bottom: 1rem; color: var(--accent); }
+        .empty-state h3 { color: var(--text-primary); margin-bottom: 0.5rem; }
+
+        /* Toast */
+        .toast-msg {
+            position: fixed; bottom: 2rem; right: 2rem; background: var(--success); color: white;
+            padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
+            z-index: 9999; opacity: 0; transform: translateY(10px);
+            transition: all 0.3s ease; pointer-events: none;
+        }
+        .toast-msg.show { opacity: 1; transform: translateY(0); }
+
+        footer { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; position: relative; z-index: 1; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <a href="/" class="navbar-brand">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'index' %}" class="nav-btn"><i class="fas fa-home"></i> <span class="d-none d-sm-inline">Home</span></a>
+                <a href="{% url 'analytics' %}" class="nav-btn"><i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline">Analytics</span></a>
+                <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-title">
+            <h1><i class="fas fa-history"></i> Question History</h1>
+            <p>{{ questions|length }} question{{ questions|length|pluralize }} generated</p>
+        </div>
+
+        <form method="GET" class="filter-card">
+            <select name="topic">
+                <option value="">All Topics</option>
+                {% for t in topics %}
+                <option value="{{ t }}" {% if t == current_topic %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+            <select name="difficulty">
+                <option value="">All Difficulties</option>
+                <option value="Easy" {% if current_difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if current_difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if current_difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+            <button type="submit"><i class="fas fa-filter"></i> Filter</button>
+        </form>
+
+        {% if questions %}
+            {% for q in questions %}
+            <div class="question-card" id="qcard-{{ q.id }}">
+                <div class="q-meta">
+                    <span class="q-badge topic">{{ q.topic }}</span>
+                    <span class="q-badge diff-{{ q.difficulty }}">{{ q.difficulty }}</span>
+                    <span class="q-badge type">{{ q.get_question_type_display }}</span>
+                    <span class="q-badge marks">{{ q.marks }} mark{{ q.marks|pluralize }}</span>
+                    {% if q.bloom_level %}<span class="q-badge bloom">{{ q.bloom_level }}</span>{% endif %}
+                    <span class="q-time">{{ q.created_at|date:"M d, Y H:i" }}</span>
+                    <div class="q-actions">
+                        <a href="{% url 'evaluate_answer' q.id %}" class="btn-eval" title="Evaluate answer"><i class="fas fa-pen"></i></a>
+                        <button onclick="deleteQuestion({{ q.id }})" class="btn-del" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <p class="q-text">{{ q.text }}</p>
+                {% if q.answer %}
+                <div class="q-answer"><strong>Answer:</strong> {{ q.answer }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No Questions Yet</h3>
+                <p>Generate some questions to see them here!</p>
+                <a href="{% url 'upload' %}" class="nav-btn" style="margin-top:1rem;display:inline-flex;"><i class="fas fa-plus"></i> Generate Questions</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="toast-msg" id="toast"></div>
+
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script>
+        function initTheme() { applyTheme(localStorage.getItem('theme') || 'dark'); }
+        function applyTheme(t) {
+            document.documentElement.classList.toggle('light-theme', t === 'light');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = t === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', t);
+        }
+        function toggleTheme() { applyTheme((localStorage.getItem('theme') || 'dark') === 'dark' ? 'light' : 'dark'); }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 2500);
+        }
+
+        function deleteQuestion(id) {
+            if (!confirm('Delete this question?')) return;
+            fetch('/delete-question/' + id + '/', {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.success) {
+                    var card = document.getElementById('qcard-' + id);
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(50px)';
+                    setTimeout(function() { card.remove(); }, 300);
+                    showToast('Question deleted');
+                }
+            });
+        }
+
+        initTheme();
+    </script>
+</body>
+</html>

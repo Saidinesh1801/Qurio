@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Qurio - Features{% endblock %}
+
+{% block nav_items %}
+<a href="{% url 'index' %}" class="nav-btn"><i class="fas fa-home"></i> <span class="d-none d-sm-inline">Home</span></a>
+<a href="{% url 'history' %}" class="nav-btn"><i class="fas fa-history"></i> <span class="d-none d-sm-inline">History</span></a>
+{% endblock %}
+
+{% block extra_css %}
+:root {
+    --purple: #8b5cf6;
+    --orange: #f59e0b;
+    --pink: #ec4899;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.feature-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--card-accent);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--card-accent);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.feature-card:hover::before {
+    transform: scaleX(1);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    color: white;
+}
+
+.feature-card h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.feature-card .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-card .feature-list li {
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    padding: 0.3rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feature-card .feature-list li i {
+    color: var(--success);
+    font-size: 0.75rem;
+}
+
+.feature-arrow {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-arrow {
+    color: var(--card-accent);
+    transform: translateX(5px);
+}
+
+/* Card accent colors */
+.card-questions { --card-accent: var(--accent); }
+.card-questions .feature-icon { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); }
+
+.card-notes { --card-accent: var(--success); }
+.card-notes .feature-icon { background: linear-gradient(135deg, var(--success), #059669); }
+
+.card-topics { --card-accent: var(--purple); }
+.card-topics .feature-icon { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+
+.card-history { --card-accent: var(--orange); }
+.card-history .feature-icon { background: linear-gradient(135deg, var(--orange), #d97706); }
+
+.card-quiz { --card-accent: #ec4899; }
+.card-quiz .feature-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+
+.card-flashcard { --card-accent: #8b5cf6; }
+.card-flashcard .feature-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.card-analytics { --card-accent: #06b6d4; }
+.card-analytics .feature-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="page-header">
+        <h1><i class="fas fa-sparkles" style="color: var(--accent);"></i> Our Features</h1>
+        <p>Choose a feature to get started with AI-powered study tools</p>
+    </div>
+
+    <div class="features-grid">
+        <!-- Question Generator -->
+        <a href="{% url 'upload' %}" class="feature-card card-questions">
+            <div class="feature-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h3>Question Generator</h3>
+            <p>Generate AI-powered questions from your study materials with multiple question types and difficulty levels.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Multiple Choice Questions</li>
+                <li><i class="fas fa-check"></i> True/False Questions</li>
+                <li><i class="fas fa-check"></i> Short & Long Answer</li>
+                <li><i class="fas fa-check"></i> Numerical Problems</li>
+                <li><i class="fas fa-check"></i> Download as PDF</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- Short Notes -->
+        <a href="{% url 'short_notes' %}" class="feature-card card-notes">
+            <div class="feature-icon">
+                <i class="fas fa-sticky-note"></i>
+            </div>
+            <h3>Short Notes Generator</h3>
+            <p>Create concise, well-organized study notes from your PDFs with key points and formulas highlighted.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Organized Headings</li>
+                <li><i class="fas fa-check"></i> Key Points Highlighted</li>
+                <li><i class="fas fa-check"></i> Formula Extraction</li>
+                <li><i class="fas fa-check"></i> Memory Tips Included</li>
+                <li><i class="fas fa-check"></i> Download as PDF</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- Topic Extraction -->
+        <a href="{% url 'pdf_topic_generator' %}" class="feature-card card-topics">
+            <div class="feature-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3>Topic Extraction</h3>
+            <p>Extract and understand main topics from your documents with detailed explanations and examples.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Main Topic Identification</li>
+                <li><i class="fas fa-check"></i> Concept Explanations</li>
+                <li><i class="fas fa-check"></i> Math Problem Solutions</li>
+                <li><i class="fas fa-check"></i> Interactive Display</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- History -->
+        <a href="{% url 'history' %}" class="feature-card card-history">
+            <div class="feature-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <h3>Question History</h3>
+            <p>Access all your previously generated questions, filter by topic or difficulty, and review anytime.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> View Past Questions</li>
+                <li><i class="fas fa-check"></i> Filter by Topic</li>
+                <li><i class="fas fa-check"></i> Filter by Difficulty</li>
+                <li><i class="fas fa-check"></i> Delete Questions</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- Interactive Quiz -->
+        <a href="{% url 'upload' %}" class="feature-card card-quiz">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3>Interactive Quiz</h3>
+            <p>Take timed quizzes with auto-grading for MCQ and True/False, score tracking and detailed results.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Timed Quiz Mode</li>
+                <li><i class="fas fa-check"></i> Auto-Grading</li>
+                <li><i class="fas fa-check"></i> Score Analytics</li>
+                <li><i class="fas fa-check"></i> AI Answer Evaluation</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- Flashcards -->
+        <a href="{% url 'flashcards' %}" class="feature-card card-flashcard">
+            <div class="feature-icon">
+                <i class="fas fa-clone"></i>
+            </div>
+            <h3>Flashcard Generator</h3>
+            <p>Create interactive flashcards from your study material with flip animations and shuffle mode.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> 3D Flip Animation</li>
+                <li><i class="fas fa-check"></i> Keyboard Navigation</li>
+                <li><i class="fas fa-check"></i> Shuffle Mode</li>
+                <li><i class="fas fa-check"></i> Paste Text Support</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+
+        <!-- Analytics -->
+        <a href="{% url 'analytics' %}" class="feature-card card-analytics">
+            <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Analytics Dashboard</h3>
+            <p>Track your study progress with visual charts showing question types, difficulty, and Bloom's taxonomy.</p>
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Difficulty Distribution</li>
+                <li><i class="fas fa-check"></i> Bloom's Taxonomy</li>
+                <li><i class="fas fa-check"></i> Quiz Score Tracking</li>
+                <li><i class="fas fa-check"></i> Recent Activity</li>
+            </ul>
+            <i class="fas fa-arrow-right feature-arrow"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

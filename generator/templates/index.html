@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,449 +8,192 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-primary: #0d1117;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #c9d1d9;
+            --text-muted: #8b949e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #3b82f6;
+            --particle-color: rgba(255, 255, 255, 0.04);
+            --card-icon: #3b82f6;
+            --nav-border: rgba(255, 255, 255, 0.08);
         }
-
+        html.light-theme {
+            --bg-primary: #f0f4f8;
+            --bg-card: #ffffff;
+            --text-primary: #1a2332;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --accent: #3b82f6;
+            --particle-color: rgba(147, 197, 253, 0.25);
+            --card-icon: #3b82f6;
+            --nav-border: rgba(0, 0, 0, 0.06);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background: var(--bg-primary);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-secondary);
+            transition: background 0.4s ease, color 0.4s ease;
             overflow-x: hidden;
         }
-
-        /* Animated background particles */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle { position: absolute; border-radius: 50%; background: var(--particle-color); animation: drift 25s infinite ease-in-out; }
+        @keyframes drift {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(-10px) translateX(-15px); }
+            75% { transform: translateY(-25px) translateX(5px); }
         }
-
-        .particle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 10s infinite ease-in-out;
+        .navbar { background: transparent; padding: 0.8rem 1.5rem; position: relative; z-index: 10; border-bottom: 1px solid var(--nav-border); }
+        .logo-img { height: 40px; width: auto; }
+        html:not(.light-theme) .logo-img { filter: brightness(0) invert(1); }
+        .nav-btn {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);
+            font-weight: 500; border-radius: 10px; padding: 8px 16px; cursor: pointer;
+            transition: all 0.25s ease; font-size: 0.85rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) translateX(0px); }
-            50% { transform: translateY(-50px) translateX(30px); }
+        .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle {
+            width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border-color);
+            background: var(--bg-card); color: var(--accent); font-size: 1rem;
+            cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center;
         }
-
-        /* Navigation */
-        .navbar {
-            background: rgba(15, 12, 41, 0.8) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem 0;
-            position: relative;
-            z-index: 100;
+        .theme-toggle:hover { border-color: var(--accent); transform: rotate(90deg); }
+        .hero { text-align: center; padding: 5rem 1rem 3rem; position: relative; z-index: 1; }
+        .hero-logo { height: 160px; width: auto; margin-bottom: 1.5rem; }
+        html:not(.light-theme) .hero-logo { filter: brightness(0) invert(1); }
+        .brand-name { font-size: 1.3rem; font-weight: 800; letter-spacing: 6px; color: var(--text-primary); text-transform: uppercase; }
+        .brand-tagline { font-size: 0.7rem; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3rem; }
+        .hero-desc { font-size: 1rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+        .btn-start {
+            display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff;
+            border: none; padding: 14px 36px; border-radius: 10px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.25s ease; text-decoration: none;
         }
-
-        .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00d4ff, #7f00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
+        .btn-start:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.35); color: #fff; }
+        .features { max-width: 900px; margin: 0 auto; padding: 1rem 1.5rem 2rem; position: relative; z-index: 1; }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+            padding: 1.8rem 1rem; text-align: center; transition: all 0.25s ease;
+            text-decoration: none; display: block; cursor: pointer;
         }
-
-        /* Hero Section */
-        .hero-section {
-            position: relative;
-            padding: 120px 0 80px;
-            background: linear-gradient(135deg, rgba(15, 12, 41, 0.5), rgba(48, 43, 99, 0.5));
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .hero-section h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #00d4ff, #7f00ff, #ff006e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
-            letter-spacing: -1px;
-        }
-
-        .hero-section p {
-            font-size: 1.3rem;
-            color: #b0b0ff;
-            margin-bottom: 2rem;
-            font-weight: 300;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-glow {
-            background: linear-gradient(135deg, #00d4ff, #7f00ff);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 12px 40px;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
-        }
-
-        .btn-glow:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(127, 0, 255, 0.6);
-            color: white;
-        }
-
-        /* Upload Container */
-        .upload-section {
-            position: relative;
-            z-index: 2;
-            padding: 60px 0;
-        }
-
-        .upload-container {
-            background: rgba(48, 43, 99, 0.4);
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 20px;
-            padding: 60px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .upload-container:hover {
-            border-color: rgba(0, 212, 255, 0.6);
-            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
-            background: rgba(48, 43, 99, 0.6);
-        }
-
-        .upload-container h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #00d4ff;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-
-        .upload-box {
-            border: 3px dashed rgba(0, 212, 255, 0.5);
-            border-radius: 15px;
-            padding: 50px 30px;
-            background: rgba(15, 12, 41, 0.6);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin: 2rem 0;
-        }
-
-        .upload-box:hover {
-            border-color: rgba(0, 212, 255, 0.8);
-            background: rgba(15, 12, 41, 0.9);
-            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
-        }
-
-        .upload-box label {
-            color: #00d4ff;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            margin-bottom: 0;
-        }
-
-        /* File input styling */
-        #fileUpload {
-            opacity: 0;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            left: 0;
-            top: 0;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            display: block;
-            cursor: pointer;
-        }
-
-        .form-control, .form-select {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(0, 212, 255, 0.3) !important;
-            color: #e0e0e0 !important;
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: #00d4ff !important;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-            color: #fff !important;
-        }
-
-        .form-control::placeholder {
-            color: rgba(224, 224, 224, 0.5);
-        }
-
-        .form-select option {
-            background: #1a1629;
-            color: #e0e0e0;
-        }
-
-        .form-label {
-            color: #b0b0ff;
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #00d4ff, #7f00ff);
-            border: none;
-            font-weight: 700;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            padding: 14px 30px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(127, 0, 255, 0.5);
-            background: linear-gradient(135deg, #7f00ff, #00d4ff);
-        }
-
-        .btn-primary:active {
-            transform: translateY(-1px);
-        }
-
-        /* Error Alert */
-        .alert {
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid rgba(220, 53, 69, 0.5);
-            color: #ff6b9d;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Footer */
-        footer {
-            background: rgba(15, 12, 41, 0.9);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 3rem 0;
-            position: relative;
-            z-index: 10;
-        }
-
-        footer p {
-            color: #7f7fbf;
-            margin: 0;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-section h1 {
-                font-size: 2.5rem;
-            }
-
-            .upload-container {
-                padding: 40px 20px;
-            }
-
-            .hero-section p {
-                font-size: 1.1rem;
-            }
-        }
-
-        /* Loading animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+        .feature-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .feature-card .icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+        .feature-card h3 { color: var(--text-primary); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .feature-card p { color: var(--text-muted); font-size: 0.78rem; margin: 0; }
+        .section-title { text-align: center; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; margin: 2rem 0 1rem; font-weight: 600; }
+        footer { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 0.8rem; position: relative; z-index: 1; }
+        .version { display: inline-block; border: 1px solid var(--border-color); border-radius: 5px; padding: 1px 8px; font-size: 0.72rem; margin-left: 6px; }
+        @media (max-width: 640px) { .features-grid { grid-template-columns: repeat(2, 1fr); } .hero-logo { height: 110px; } }
     </style>
 </head>
 <body>
     <div class="particles" id="particles"></div>
-
-    <nav class="navbar navbar-dark navbar-expand-lg">
-        <div class="container">
-            <span class="navbar-brand">
-                <i class="fas fa-brain"></i> QURIO
-            </span>
-        </div>
-    </nav>
-
-    <header class="hero-section text-center">
-        <div class="container">
-            <h1 class="display-3 fw-bold">AI-Powered Question Generator</h1>
-            <p class="lead">Transform your study materials into intelligent question papers using advanced AI</p>
-            <a href="#generate" class="btn btn-glow btn-lg mt-3">
-                <i class="fas fa-rocket"></i> Get Started
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a href="/">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
             </a>
-        </div>
-    </header>
-
-    <section id="generate" class="upload-section">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="upload-container">
-                        <h2 class="text-center">
-                            <i class="fas fa-file-pdf"></i> Upload Your Content
-                        </h2>
-                        
-                        {% if error %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle"></i> {{ error }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                        {% endif %}
-
-                        <form method="POST" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            
-                            <div class="upload-box file-input-wrapper">
-                                <label for="fileUpload" class="d-block w-100 h-100">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                                    <div>Click to upload or drag and drop</div>
-                                    <small style="color: rgba(176, 176, 255, 0.7);">PDF files up to 50MB</small>
-                                </label>
-                                <input type="file" name="study_file" id="fileUpload" accept=".pdf" required>
-                            </div>
-                            
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-sliders-h"></i> Difficulty Level
-                                    </label>
-                                    <select name="difficulty" class="form-select">
-                                        <option value="Easy">Easy</option>
-                                        <option value="Medium" selected>Medium</option>
-                                        <option value="Hard">Hard</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-calculator"></i> Question Type
-                                    </label>
-                                    <select name="question_type" class="form-select">
-                                        <option value="mixed" selected>Mixed (Theory + Numerical)</option>
-                                        <option value="numerical">Numerical Only (with Solutions)</option>
-                                        <option value="theoretical">Theoretical Only</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        <i class="fas fa-list-ol"></i> Number of Questions
-                                    </label>
-                                    <input type="number" name="num_questions" class="form-control" value="5" min="1" max="20">
-                                </div>
-                            </div>
-                            
-                            <div class="info-box mb-4" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 10px; padding: 15px;">
-                                <small style="color: #b0b0ff;">
-                                    <i class="fas fa-info-circle"></i> <strong>Numerical problems</strong> include step-by-step solutions with detailed explanations for each calculation step.
-                                </small>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-magic"></i> Generate Questions
-                            </button>
-                        </form>
-                    </div>
-                </div>
+            <div class="d-flex gap-2">
+                <a href="/history/" class="nav-btn"><i class="fas fa-history"></i> History</a>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-cog" id="themeIcon"></i></button>
             </div>
         </div>
+    </nav>
+    <section class="hero">
+        <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="hero-logo">
+        <p class="hero-desc">Transform your study materials into AI-powered question papers</p>
+        <a href="/features/" class="btn-start"><i class="fas fa-rocket"></i> Get Started</a>
     </section>
-
-    <footer class="text-center">
-        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    <section class="features">
+        <div class="section-title">Core Features</div>
+        <div class="features-grid">
+            <a href="/upload/" class="feature-card">
+                <div class="icon" style="color:#3b82f6;"><i class="fas fa-file-alt"></i></div>
+                <h3>Question Generator</h3>
+                <p>MCQ, Short, Long &amp; Numerical</p>
+            </a>
+            <a href="/short-notes/" class="feature-card">
+                <div class="icon" style="color:#10b981;"><i class="fas fa-sticky-note"></i></div>
+                <h3>Short Notes</h3>
+                <p>Concise study notes from PDF</p>
+            </a>
+            <a href="/pdf-topic-generator/" class="feature-card">
+                <div class="icon" style="color:#8b5cf6;"><i class="fas fa-lightbulb"></i></div>
+                <h3>Topic Extraction</h3>
+                <p>Extract key topics from PDF</p>
+            </a>
+        </div>
+        <div class="section-title" style="margin-top:1.5rem;">Study &amp; Practice</div>
+        <div class="features-grid">
+            <a href="/upload/" class="feature-card">
+                <div class="icon" style="color:#ec4899;"><i class="fas fa-brain"></i></div>
+                <h3>Interactive Quiz</h3>
+                <p>Timed quizzes with auto-grading</p>
+            </a>
+            <a href="/flashcards/" class="feature-card">
+                <div class="icon" style="color:#8b5cf6;"><i class="fas fa-clone"></i></div>
+                <h3>Flashcards</h3>
+                <p>Flip cards for quick revision</p>
+            </a>
+            <a href="/upload/" class="feature-card">
+                <div class="icon" style="color:#f59e0b;"><i class="fas fa-pen-fancy"></i></div>
+                <h3>AI Evaluator</h3>
+                <p>Get your answers graded by AI</p>
+            </a>
+        </div>
+        <div class="section-title" style="margin-top:1.5rem;">Tools &amp; Insights</div>
+        <div class="features-grid">
+            <a href="/analytics/" class="feature-card">
+                <div class="icon" style="color:#06b6d4;"><i class="fas fa-chart-bar"></i></div>
+                <h3>Analytics</h3>
+                <p>Track your study progress</p>
+            </a>
+            <a href="/upload/" class="feature-card">
+                <div class="icon" style="color:#3b82f6;"><i class="fas fa-file-word"></i></div>
+                <h3>Export as Word</h3>
+                <p>Download questions as DOCX</p>
+            </a>
+            <a href="/history/" class="feature-card">
+                <div class="icon" style="color:#f59e0b;"><i class="fas fa-history"></i></div>
+                <h3>History</h3>
+                <p>Access all past questions</p>
+            </a>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform <span class="version">v1.2</span></p>
     </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Create animated particles
+        function initTheme() { applyTheme(localStorage.getItem('theme') || 'light'); }
+        function applyTheme(t) {
+            document.documentElement.classList.toggle('light-theme', t === 'light');
+            localStorage.setItem('theme', t);
+            var icon = document.getElementById('themeIcon');
+            if (icon) { icon.className = t === 'light' ? 'fas fa-moon' : 'fas fa-sun'; }
+        }
+        function toggleTheme() { applyTheme((localStorage.getItem('theme') || 'light') === 'dark' ? 'light' : 'dark'); }
         function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = Math.random() * 50 + 10 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 10 + 's';
-                particle.style.animationDuration = Math.random() * 15 + 10 + 's';
-                container.appendChild(particle);
+            var c = document.getElementById('particles');
+            var s = [180,140,100,80,60,50,200,120,90,70,160,45];
+            var p = [[5,15],[25,8],[70,5],[85,12],[90,25],[10,45],[30,55],[50,35],[75,50],[15,75],[60,70],[85,65]];
+            for (var i = 0; i < p.length; i++) {
+                var d = document.createElement('div');
+                d.className = 'particle';
+                d.style.width = s[i]+'px'; d.style.height = s[i]+'px';
+                d.style.left = p[i][0]+'%'; d.style.top = p[i][1]+'%';
+                d.style.animationDelay = (i*1.5)+'s'; d.style.animationDuration = (20+i*2)+'s';
+                c.appendChild(d);
             }
         }
-
-        // File upload drag and drop
-        const fileInput = document.getElementById('fileUpload');
-        const uploadBox = document.querySelector('.upload-box');
-
-        // Handle drag and drop
-        uploadBox.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadBox.style.borderColor = 'rgba(0, 212, 255, 0.8)';
-            uploadBox.style.background = 'rgba(15, 12, 41, 0.9)';
-        });
-
-        uploadBox.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadBox.style.borderColor = 'rgba(0, 212, 255, 0.5)';
-            uploadBox.style.background = 'rgba(15, 12, 41, 0.6)';
-        });
-
-        uploadBox.addEventListener('drop', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                updateUploadBox(files[0]);
-            }
-            uploadBox.style.borderColor = 'rgba(0, 212, 255, 0.5)';
-            uploadBox.style.background = 'rgba(15, 12, 41, 0.6)';
-        });
-
-        // Handle file selection
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                updateUploadBox(e.target.files[0]);
-            }
-        });
-
-        function updateUploadBox(file) {
-            const uploadBox = document.querySelector('.upload-box');
-            const label = uploadBox.querySelector('label');
-            label.innerHTML = '<i class="fas fa-check-circle" style="font-size: 3rem; color: #00d4ff; margin-bottom: 1rem;"></i><div style="color: #00d4ff; font-weight: bold;">' + file.name + '</div><small style="color: rgba(176, 176, 255, 0.7);">Ready to generate</small>';
-        }
-
-        createParticles();
+        initTheme(); createParticles();
     </script>
 </body>
 </html>

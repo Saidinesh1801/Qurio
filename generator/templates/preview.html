@@ -1,0 +1,788 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qurio - Preview Questions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-navbar: rgba(10, 10, 10, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --error: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+
+        html.light-theme {
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-navbar: rgba(240, 248, 255, 0.85);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background:
+                linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        html.light-theme body {
+            background:
+                linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+
+        html.light-theme body::before {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(100, 180, 220, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(150, 200, 230, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(180, 215, 240, 0.18) 0%, transparent 50%);
+        }
+
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+
+        .navbar {
+            background: transparent;
+            border-bottom: none;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 90px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        html.light-theme .logo-img {
+            filter: brightness(0);
+        }
+
+        .nav-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .page-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header section */
+        .preview-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-header h2 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .btn-action {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-action:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-action.btn-pdf { border-color: #ef4444; color: #ef4444; }
+        .btn-action.btn-pdf:hover { background: #ef4444; border-color: #ef4444; color: white; }
+
+        .btn-action.btn-docx { border-color: #3b82f6; color: #3b82f6; }
+        .btn-action.btn-docx:hover { background: #3b82f6; border-color: #3b82f6; color: white; }
+
+        .btn-action.btn-quiz { border-color: var(--success); color: var(--success); }
+        .btn-action.btn-quiz:hover { background: var(--success); border-color: var(--success); color: white; }
+
+        /* Toggle switch */
+        .toggle-bar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border-color);
+            border-radius: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+        }
+
+        /* Question cards */
+        .question-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .question-card:hover {
+            border-color: var(--accent);
+        }
+
+        .question-top {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .question-number {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .badge-type {
+            background: rgba(77, 166, 217, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(77, 166, 217, 0.3);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-bloom {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-marks {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: auto;
+        }
+
+        .btn-regenerate {
+            background: none;
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            padding: 0;
+        }
+
+        .btn-regenerate:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(77, 166, 217, 0.1);
+        }
+
+        .btn-regenerate.spinning {
+            animation: spin 0.8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .question-text {
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .answer-section {
+            display: none;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .answer-section.visible {
+            display: block;
+        }
+
+        .answer-label, .explanation-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.3rem;
+        }
+
+        .answer-label {
+            color: var(--success);
+        }
+
+        .explanation-label {
+            color: #a78bfa;
+            margin-top: 0.75rem;
+        }
+
+        .answer-text, .explanation-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            pointer-events: auto;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast-msg.success { border-color: var(--success); }
+        .toast-msg.success i { color: var(--success); }
+
+        .toast-msg.error { border-color: var(--error); }
+        .toast-msg.error i { color: var(--error); }
+
+        .toast-msg.info { border-color: var(--accent); }
+        .toast-msg.info i { color: var(--accent); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-buttons .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+            .question-top {
+                flex-wrap: wrap;
+            }
+            .badge-marks {
+                margin-left: 0;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                color: #000 !important;
+            }
+            body::before { display: none; }
+            .navbar, .action-buttons, .toggle-bar, .btn-regenerate,
+            .toast-container, footer {
+                display: none !important;
+            }
+            .page-container {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .preview-header {
+                background: none;
+                backdrop-filter: none;
+                border: none;
+                padding: 0 0 1rem 0;
+                margin-bottom: 1rem;
+                border-bottom: 2px solid #000;
+                border-radius: 0;
+            }
+            .preview-header h2 {
+                color: #000;
+                font-size: 1.4rem;
+            }
+            .question-card {
+                background: none;
+                backdrop-filter: none;
+                border: none;
+                border-bottom: 1px solid #ccc;
+                border-radius: 0;
+                padding: 0.75rem 0;
+                margin-bottom: 0;
+                break-inside: avoid;
+            }
+            .question-card:hover {
+                border-color: #ccc;
+            }
+            .question-number { color: #000; }
+            .question-text { color: #000; }
+            .badge-type, .badge-bloom {
+                border: 1px solid #999;
+                color: #333;
+                background: #eee;
+            }
+            .badge-marks {
+                border: 1px solid #999;
+                color: #333;
+                background: #eee;
+            }
+            .answer-section {
+                display: block !important;
+            }
+            .answer-label { color: #333; }
+            .explanation-label { color: #555; }
+            .answer-text, .explanation-text { color: #000; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <a href="/" class="navbar-brand">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'index' %}" class="nav-btn">
+                    <i class="fas fa-home"></i> <span class="d-none d-sm-inline">Home</span>
+                </a>
+                <a href="{% url 'history' %}" class="nav-btn">
+                    <i class="fas fa-history"></i> <span class="d-none d-sm-inline">History</span>
+                </a>
+                <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <!-- Header -->
+        <div class="preview-header">
+            <h2><i class="fas fa-eye"></i> {{ topic }}</h2>
+            <div class="action-buttons">
+                <a href="{% url 'download_preview_pdf' %}?ids={{ question_ids }}" class="btn-action btn-pdf">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </a>
+                <a href="{% url 'export_docx' %}?ids={{ question_ids }}" class="btn-action btn-docx">
+                    <i class="fas fa-file-word"></i> Download DOCX
+                </a>
+                <a href="{% url 'start_quiz' %}?ids={{ question_ids }}" class="btn-action btn-quiz">
+                    <i class="fas fa-play-circle"></i> Start Quiz
+                </a>
+                <button class="btn-action" onclick="shareLink()">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+                <button class="btn-action" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Toggle answers -->
+        <div class="toggle-bar">
+            <span class="toggle-label">
+                <i class="fas fa-eye-slash" id="toggleIcon"></i>
+                <span id="toggleText">Show Answers</span>
+            </span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="answersToggle" onchange="toggleAnswers()">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+        <!-- Questions list -->
+        {% for question in questions %}
+        <div class="question-card" id="question-card-{{ question.id }}">
+            <div class="question-top">
+                <span class="question-number">Q{{ forloop.counter }}.</span>
+                <span class="badge-type">{{ question.question_type }}</span>
+                {% if question.bloom_level %}
+                <span class="badge-bloom">{{ question.bloom_level }}</span>
+                {% endif %}
+                {% if question.marks %}
+                <span class="badge-marks">{{ question.marks }} mark{{ question.marks|pluralize }}</span>
+                {% endif %}
+                <button class="btn-regenerate" title="Regenerate this question"
+                        onclick="regenerateQuestion({{ question.id }}, this)">
+                    🔄
+                </button>
+            </div>
+            <div class="question-text">{{ question.text }}</div>
+            <div class="answer-section">
+                {% if question.answer %}
+                <div class="answer-label">Answer</div>
+                <div class="answer-text">{{ question.answer }}</div>
+                {% endif %}
+                {% if question.explanation %}
+                <div class="explanation-label">Explanation</div>
+                <div class="explanation-text">{{ question.explanation }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script>
+        // Theme
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            applyTheme(saved);
+        }
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                html.classList.add('light-theme');
+                icon.className = 'fas fa-sun';
+            } else {
+                html.classList.remove('light-theme');
+                icon.className = 'fas fa-moon';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // Toast notifications
+        function showToast(message, type) {
+            type = type || 'info';
+            const container = document.getElementById('toastContainer');
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg ' + type;
+            toast.innerHTML = '<i class="fas ' + icons[type] + '"></i> ' + message;
+            container.appendChild(toast);
+            setTimeout(function() {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 3000);
+        }
+
+        // Toggle answers
+        function toggleAnswers() {
+            const checked = document.getElementById('answersToggle').checked;
+            const icon = document.getElementById('toggleIcon');
+            const text = document.getElementById('toggleText');
+            const sections = document.querySelectorAll('.answer-section');
+
+            sections.forEach(function(s) {
+                if (checked) {
+                    s.classList.add('visible');
+                } else {
+                    s.classList.remove('visible');
+                }
+            });
+
+            if (checked) {
+                icon.className = 'fas fa-eye';
+                text.textContent = 'Hide Answers';
+            } else {
+                icon.className = 'fas fa-eye-slash';
+                text.textContent = 'Show Answers';
+            }
+        }
+
+        // Share link
+        function shareLink() {
+            var url = '{{ share_url }}';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function() {
+                    showToast('Link copied!', 'success');
+                }).catch(function() {
+                    fallbackCopy(url);
+                });
+            } else {
+                fallbackCopy(url);
+            }
+        }
+
+        function fallbackCopy(text) {
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Link copied!', 'success');
+            } catch (e) {
+                showToast('Failed to copy link', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Regenerate question
+        function regenerateQuestion(questionId, btn) {
+            btn.classList.add('spinning');
+            var csrfToken = '{{ csrf_token }}';
+
+            fetch('/regenerate-question/' + questionId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                btn.classList.remove('spinning');
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                var card = document.getElementById('question-card-' + questionId);
+                var textEl = card.querySelector('.question-text');
+                textEl.textContent = data.text || data.question_text || '';
+
+                var typeEl = card.querySelector('.badge-type');
+                if (typeEl && data.question_type) typeEl.textContent = data.question_type;
+
+                var bloomEl = card.querySelector('.badge-bloom');
+                if (bloomEl && data.bloom_level) bloomEl.textContent = data.bloom_level;
+
+                var marksEl = card.querySelector('.badge-marks');
+                if (marksEl && data.marks) {
+                    marksEl.textContent = data.marks + ' mark' + (data.marks !== 1 ? 's' : '');
+                }
+
+                var answerSection = card.querySelector('.answer-section');
+                var answerHtml = '';
+                if (data.answer) {
+                    answerHtml += '<div class="answer-label">Answer</div>';
+                    answerHtml += '<div class="answer-text">' + data.answer + '</div>';
+                }
+                if (data.explanation) {
+                    answerHtml += '<div class="explanation-label">Explanation</div>';
+                    answerHtml += '<div class="explanation-text">' + data.explanation + '</div>';
+                }
+                answerSection.innerHTML = answerHtml;
+
+                var isVisible = document.getElementById('answersToggle').checked;
+                if (isVisible) answerSection.classList.add('visible');
+
+                showToast('Question regenerated!', 'success');
+            })
+            .catch(function(err) {
+                btn.classList.remove('spinning');
+                showToast('Regeneration failed: ' + err.message, 'error');
+            });
+        }
+
+        initTheme();
+    </script>
+</body>
+</html>

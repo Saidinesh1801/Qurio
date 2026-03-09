@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Qurio{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+        html.light-theme {
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-secondary); position: relative;
+        }
+        html.light-theme body {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+        body::before {
+            content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(255,255,255,0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.04) 0%, transparent 45%),
+                        radial-gradient(ellipse at 40% 80%, rgba(255,255,255,0.03) 0%, transparent 50%);
+            pointer-events: none; z-index: 0; animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+        html.light-theme body::before {
+            background: radial-gradient(ellipse at 20% 20%, rgba(100,180,220,0.25) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(150,200,230,0.2) 0%, transparent 45%),
+                        radial-gradient(ellipse at 40% 80%, rgba(180,215,240,0.18) 0%, transparent 50%);
+        }
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+        .navbar { background: transparent; border-bottom: none; padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { display: flex; align-items: center; text-decoration: none; }
+        .logo-img { height: 90px; width: auto; filter: brightness(0) invert(1); }
+        html.light-theme .logo-img { filter: brightness(0); }
+        .nav-btn {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary);
+            font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; transition: all 0.2s ease;
+            font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        }
+        .nav-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+        .main-content { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; position: relative; z-index: 1; }
+        .page-title { text-align: center; margin-bottom: 2rem; }
+        .page-title h1 { color: var(--text-primary); font-size: 2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .page-title h1 i { color: var(--accent); }
+        .glass-card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 2rem; backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        }
+        .btn-primary-q {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border: none; color: white;
+            font-weight: 700; padding: 14px 28px; border-radius: 10px; font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-primary-q:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(77,166,217,0.35); }
+        .toast-msg {
+            position: fixed; bottom: 2rem; right: 2rem; background: var(--success); color: white;
+            padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
+            z-index: 9999; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; pointer-events: none;
+        }
+        .toast-msg.show { opacity: 1; transform: translateY(0); }
+        footer { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; position: relative; z-index: 1; }
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <a href="/" class="navbar-brand">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+                {% block nav_items %}
+                <a href="{% url 'index' %}" class="nav-btn"><i class="fas fa-home"></i> <span class="d-none d-sm-inline">Home</span></a>
+                {% endblock %}
+                <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+                {% if user.is_authenticated %}
+                <span class="nav-btn" style="cursor:default;"><i class="fas fa-user"></i> <span class="d-none d-sm-inline">{{ user.username }}</span></span>
+                <a href="{% url 'logout' %}" class="nav-btn"><i class="fas fa-sign-out-alt"></i></a>
+                {% else %}
+                <a href="{% url 'login' %}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> <span class="d-none d-sm-inline">Login</span></a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <div class="toast-msg" id="toast"></div>
+
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script>
+        function initTheme() { applyTheme(localStorage.getItem('theme') || 'dark'); }
+        function applyTheme(t) {
+            document.documentElement.classList.toggle('light-theme', t === 'light');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = t === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', t);
+        }
+        function toggleTheme() { applyTheme((localStorage.getItem('theme') || 'dark') === 'dark' ? 'light' : 'dark'); }
+        function showToast(msg, type) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = type === 'error' ? 'var(--error)' : type === 'info' ? 'var(--accent)' : 'var(--success)';
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+        initTheme();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

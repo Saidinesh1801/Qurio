@@ -1,0 +1,631 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qurio - Short Notes Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark mode: Matte Black + Frost White */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: rgba(255, 255, 255, 0.06);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-navbar: rgba(10, 10, 10, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #e8eaec;
+            --text-tertiary: #b8bcc0;
+            --text-muted: #888c90;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --accent: #4da6d9;
+            --accent-hover: #3b8fc2;
+            --success: #10b981;
+            --error: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+        }
+
+        html.light-theme {
+            /* Light mode: Frost Blue + Frost White */
+            --bg-primary: #f0f8ff;
+            --bg-secondary: rgba(255, 255, 255, 0.7);
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-navbar: rgba(240, 248, 255, 0.85);
+            --text-primary: #1a3a4a;
+            --text-secondary: #2a4a5a;
+            --text-tertiary: #4a6a7a;
+            --text-muted: #6a8a9a;
+            --border-color: rgba(100, 160, 200, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(180, 210, 230, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: 
+                linear-gradient(135deg, #0a0a0a 0%, #111213 25%, #181a1c 50%, #111213 75%, #0a0a0a 100%);
+            min-height: 100vh; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        html.light-theme body {
+            background: 
+                linear-gradient(135deg, #f0f8ff 0%, #e0f0fa 25%, #d0e8f5 50%, #e0f0fa 75%, #f0f8ff 100%);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: liquidGlow 15s ease-in-out infinite alternate;
+        }
+
+        html.light-theme body::before {
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(100, 180, 220, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 30%, rgba(150, 200, 230, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 40% 80%, rgba(180, 215, 240, 0.18) 0%, transparent 50%);
+        }
+
+        @keyframes liquidGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-2%, 2%) scale(1.02); }
+            100% { transform: translate(2%, -1%) scale(0.98); }
+        }
+
+        .navbar { 
+            background: transparent; 
+            border-bottom: none; 
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand { 
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 90px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        html.light-theme .logo-img {
+            filter: brightness(0);
+        }
+
+        .nav-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title h1 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .page-title h1 i {
+            color: var(--accent);
+        }
+
+        .upload-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .file-info {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-info i {
+            color: var(--success);
+            font-size: 1.5rem;
+        }
+
+        .file-info .file-name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .file-info .file-size {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        /* Notes Display */
+        .notes-container {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .notes-header h2 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notes-header h2 i {
+            color: var(--success);
+        }
+
+        .btn-copy, .btn-print, .btn-download {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn-copy:hover, .btn-print:hover, .btn-download:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, var(--success), #059669);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+
+        .notes-content {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .notes-content h2 {
+            color: var(--accent);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .notes-content h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .notes-content ul, .notes-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .notes-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .notes-content p {
+            margin-bottom: 1rem;
+        }
+
+        .btn-back {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            transition: all 0.2s ease;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        .btn-back:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media print {
+            .navbar, .btn-copy, .btn-print, .btn-back, .upload-card, footer {
+                display: none !important;
+            }
+            .notes-container {
+                border: none;
+                padding: 0;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .notes-content {
+                color: black;
+            }
+            .notes-content h2 {
+                color: #2563eb;
+            }
+            .notes-content h3 {
+                color: #1e293b;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+            <a href="/" class="navbar-brand">
+                <img src="{% static 'generator/images/logo.svg' %}" alt="Qurio" class="logo-img">
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'index' %}" class="nav-btn">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="{% url 'history' %}" class="nav-btn">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <button class="nav-btn" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-title">
+            <h1><i class="fas fa-sticky-note"></i> Short Notes Generator</h1>
+            <p class="text-muted mt-2">Upload a PDF and get concise study notes instantly</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if not success %}
+        <div class="upload-card">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h4>Drop your file here or click to browse</h4>
+                    <p>Supports PDF, DOCX, TXT (up to 50MB)</p>
+                    <input type="file" name="study_file" id="fileInput" accept=".pdf,.docx,.txt" hidden required>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <i class="fas fa-file-alt"></i>
+                    <div>
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" onclick="clearFile()"></button>
+                </div>
+
+                <button type="submit" class="btn-generate" id="generateBtn" disabled>
+                    <i class="fas fa-magic"></i> Generate Short Notes
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Notes generated successfully for: <strong>{{ filename }}</strong>
+        </div>
+
+        <div class="notes-container">
+            <div class="notes-header">
+                <h2><i class="fas fa-book-open"></i> {{ filename }}</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'download_notes_pdf' %}" class="btn-download">
+                        <i class="fas fa-download"></i> Download PDF
+                    </a>
+                    <button class="btn-copy" onclick="copyNotes()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button class="btn-print" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+            <div class="notes-content" id="notesContent">
+                {{ notes|linebreaks }}
+            </div>
+        </div>
+
+        <a href="{% url 'short_notes' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Generate More Notes
+        </a>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Qurio - Intelligent Learning Platform</p>
+    </footer>
+
+    <script>
+        // Theme
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            applyTheme(saved);
+        }
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                html.classList.add('light-theme');
+                if (icon) icon.className = 'fas fa-sun';
+            } else {
+                html.classList.remove('light-theme');
+                if (icon) icon.className = 'fas fa-moon';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // File upload
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const generateBtn = document.getElementById('generateBtn');
+
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    showFileInfo(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    showFileInfo(e.target.files[0]);
+                }
+            });
+        }
+
+        function showFileInfo(file) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            uploadZone.style.display = 'none';
+            fileInfo.style.display = 'flex';
+            generateBtn.disabled = false;
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            uploadZone.style.display = 'block';
+            fileInfo.style.display = 'none';
+            generateBtn.disabled = true;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function copyNotes() {
+            const content = document.getElementById('notesContent').innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Notes copied to clipboard!');
+            });
+        }
+
+        // Form submit loading state
+        const form = document.getElementById('uploadForm');
+        if (form) {
+            form.addEventListener('submit', () => {
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Notes...';
+            });
+        }
+
+        initTheme();
+    </script>
+</body>
+</html>
