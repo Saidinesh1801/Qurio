@@ -13,12 +13,17 @@ Include/
 pyvenv.cfg
 *.dist-info/
 *.egg-info/
+QuestionGen/
+nul
+*.log
 
 # Environment
 .env
+.env.*
 
 # Database
 *.sqlite3
+db.sqlite3
 
 # IDE
 .vscode/
@@ -27,3 +32,8 @@ pyvenv.cfg
 # OS
 .DS_Store
 Thumbs.db
+
+# Static & Media
+staticfiles/
+mediafiles/
+debug.log

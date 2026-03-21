@@ -377,6 +377,9 @@
             </div>
             {% endfor %}
             <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <a href="{% url 'download_topics_pdf' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--success); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-file-pdf"></i> Download as PDF
+                </a>
                 <a href="{% url 'upload' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                     <i class="fas fa-magic"></i> Generate Questions
                 </a>

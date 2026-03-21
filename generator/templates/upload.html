@@ -667,8 +667,10 @@
                 const res = await fetch(window.location.pathname, {
                     method: 'POST',
                     body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
                 });
+                
                 const data = await res.json();
 
                 if (data.error) {
@@ -686,7 +688,13 @@
                 showError('Unexpected response from server');
             } catch (err) {
                 loadingOverlay.classList.remove('show');
-                showError('Generation failed: ' + err.message);
+                let errorMsg = 'Generation failed. Please try again.';
+                if (err.name === 'TypeError' && err.message.includes('fetch')) {
+                    errorMsg = 'Network error. Please ensure the server is running.';
+                } else {
+                    errorMsg = 'Generation failed: ' + err.message;
+                }
+                showError(errorMsg);
             }
         });
 

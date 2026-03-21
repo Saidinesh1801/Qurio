@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -34,6 +35,7 @@ urlpatterns = [
 
     # Existing
     path('pdf-topic-generator/', views.pdf_topic_generator, name='pdf_topic_generator'),
+    path('pdf-topic-generator/download/', views.download_topics_pdf, name='download_topics_pdf'),
     path('short-notes/', views.short_notes, name='short_notes'),
     path('short-notes/download/', views.download_notes_pdf, name='download_notes_pdf'),
 
@@ -41,4 +43,10 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup_view, name='signup'),
     path('logout/', views.logout_view, name='logout'),
+
+    # API Endpoints (rate-limited)
+    path('api/generate-questions/', api.api_generate_questions, name='api_generate_questions'),
+    path('api/generate-flashcards/', api.api_generate_flashcards, name='api_generate_flashcards'),
+    path('api/extract-topics/', api.api_extract_topics, name='api_extract_topics'),
+    path('api/short-notes/', api.api_short_notes, name='api_short_notes'),
 ]

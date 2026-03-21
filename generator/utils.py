@@ -4,17 +4,19 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from io import BytesIO
-import PyPDF2
-import docx
+from typing import Any, TYPE_CHECKING
 
-def generate_pdf_file(questions, topic, include_answers=True):
+if TYPE_CHECKING:
+    from .models import Question
+
+
+def generate_pdf_file(questions: list["Question"], topic: str, include_answers: bool = True) -> BytesIO:
     try:
-        buffer = BytesIO()
+        buffer: BytesIO = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=50, rightMargin=50, topMargin=50, bottomMargin=50)
         
         styles = getSampleStyleSheet()
         
-        # Create custom styles
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
@@ -69,41 +71,35 @@ def generate_pdf_file(questions, topic, include_answers=True):
             fontName='Helvetica'
         )
         
-        story = []
+        story: list = []
         
-        # Add title
-        suffix = "" if include_answers else " (Questions Only)"
-        title_text = f"Generated Questions: {topic}{suffix}"
+        suffix: str = "" if include_answers else " (Questions Only)"
+        title_text: str = f"Generated Questions: {topic}{suffix}"
         title_p = Paragraph(title_text, title_style)
         story.append(title_p)
         story.append(Spacer(1, 0.3*inch))
         
-        # Add questions
         for i, q in enumerate(questions, 1):
-            # Question with type indicator for numerical problems
-            q_type = getattr(q, 'question_type', 'mixed')
-            type_label = " [Numerical]" if q_type == 'numerical' else ""
-            question_text = f"<b>{i}. {q.text}{type_label}</b>"
+            q_type: str = getattr(q, 'question_type', 'mixed')
+            type_label: str = " [Numerical]" if q_type == 'numerical' else ""
+            question_text: str = f"<b>{i}. {q.text}{type_label}</b>"
             question_p = Paragraph(question_text, question_style)
             story.append(question_p)
             story.append(Spacer(1, 0.08*inch))
             
             if include_answers:
-                # Answer - with label
                 if q.answer:
-                    answer_text = f"<b>Answer:</b> {q.answer}"
+                    answer_text: str = f"<b>Answer:</b> {q.answer}"
                     answer_p = Paragraph(answer_text, answer_style)
                     story.append(answer_p)
                 
-                # Step-by-step explanation for numerical problems
-                explanation = getattr(q, 'explanation', '')
+                explanation: str = getattr(q, 'explanation', '')
                 if explanation:
                     story.append(Spacer(1, 0.05*inch))
                     explanation_header = Paragraph("<b>Step-by-Step Solution:</b>", explanation_style)
                     story.append(explanation_header)
                     
-                    # Parse and format steps
-                    steps = explanation.replace('Step ', '\nStep ').strip().split('\n')
+                    steps: list[str] = explanation.replace('Step ', '\nStep ').strip().split('\n')
                     for step in steps:
                         step = step.strip()
                         if step:
@@ -112,19 +108,16 @@ def generate_pdf_file(questions, topic, include_answers=True):
             
             story.append(Spacer(1, 0.25*inch))
             
-            # Add page break after every few questions
             if include_answers:
-                questions_per_page = 2 if q_type == 'numerical' else 3
+                questions_per_page: int = 2 if q_type == 'numerical' else 3
             else:
                 questions_per_page = 5
             if (i % questions_per_page == 0) and (i < len(questions)):
                 story.append(PageBreak())
         
-        # Build the document
         doc.build(story)
         
         buffer.seek(0)
-        print(f"DEBUG: PDF buffer size: {len(buffer.getvalue())} bytes")
         return buffer
         
     except Exception as e:
@@ -134,31 +127,44 @@ def generate_pdf_file(questions, topic, include_answers=True):
         raise
 
 
-def extract_text_from_file(uploaded_file):
-    name = uploaded_file.name.lower()
+def extract_text_from_file(uploaded_file: Any) -> str:
+    name: str = uploaded_file.name.lower()
+    
     if name.endswith('.pdf'):
+        import PyPDF2
         reader = PyPDF2.PdfReader(uploaded_file)
-        text = ""
+        text: str = ""
         for page in reader.pages:
             page_text = page.extract_text()
             if page_text:
                 text += page_text + "\n"
         return text.strip()
+    
     elif name.endswith('.docx'):
+        import docx
         document = docx.Document(uploaded_file)
         text = "\n".join(para.text for para in document.paragraphs)
         return text.strip()
+    
     elif name.endswith('.txt'):
         raw = uploaded_file.read()
         if isinstance(raw, bytes):
             return raw.decode('utf-8').strip()
         return raw.strip()
+    
     else:
         raise ValueError(f"Unsupported file type: {name}")
 
 
-def generate_professional_pdf(questions, topic, include_answers=True, institution="", duration="", total_marks=None):
-    buffer = BytesIO()
+def generate_professional_pdf(
+    questions: list["Question"],
+    topic: str,
+    include_answers: bool = True,
+    institution: str = "",
+    duration: str = "",
+    total_marks: int | None = None
+) -> BytesIO:
+    buffer: BytesIO = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=50, rightMargin=50, topMargin=40, bottomMargin=40)
 
     styles = getSampleStyleSheet()
@@ -245,15 +251,14 @@ def generate_professional_pdf(questions, topic, include_answers=True, institutio
         fontName='Helvetica'
     )
 
-    story = []
+    story: list = []
 
-    # Header
     if institution:
         story.append(Paragraph(institution, institution_style))
     story.append(Paragraph(f"Examination: {topic}", exam_title_style))
     story.append(HRFlowable(width="100%", thickness=1, color=colors.black, spaceAfter=6))
 
-    meta_parts = []
+    meta_parts: list[str] = []
     if duration:
         meta_parts.append(f"Duration: {duration}")
     if total_marks is not None:
@@ -262,43 +267,41 @@ def generate_professional_pdf(questions, topic, include_answers=True, institutio
         story.append(Paragraph(" | ".join(meta_parts), meta_style))
     story.append(Spacer(1, 0.2 * inch))
 
-    # Organize questions by type into sections
-    section_map = {
+    section_map: dict[str, str] = {
         'mcq': 'Section A: Multiple Choice Questions',
         'short': 'Section B: Short Answer Questions',
         'long': 'Section C: Long Answer Questions',
         'numerical': 'Section D: Numerical Problems',
         'true_false': 'Section E: True or False',
     }
-    ordered_types = ['mcq', 'short', 'long', 'numerical', 'true_false']
+    ordered_types: list[str] = ['mcq', 'short', 'long', 'numerical', 'true_false']
 
-    sections = {}
+    sections: dict[str, list["Question"]] = {}
     for q in questions:
-        q_type = getattr(q, 'question_type', 'short')
+        q_type: str = getattr(q, 'question_type', 'short')
         sections.setdefault(q_type, []).append(q)
 
-    global_num = 1
-    answer_entries = []
+    global_num: int = 1
+    answer_entries: list[tuple[int, str, str]] = []
 
     for q_type in ordered_types:
         if q_type not in sections:
             continue
-        section_title = section_map.get(q_type, f"Section: {q_type.replace('_', ' ').title()}")
+        section_title: str = section_map.get(q_type, f"Section: {q_type.replace('_', ' ').title()}")
         story.append(Paragraph(section_title, section_style))
         story.append(HRFlowable(width="100%", thickness=0.5, color=colors.grey, spaceAfter=8))
 
         for q in sections[q_type]:
-            marks = getattr(q, 'marks', None)
-            marks_text = f"  [{marks} marks]" if marks else ""
+            marks: int | None = getattr(q, 'marks', None)
+            marks_text: str = f"  [{marks} marks]" if marks else ""
             story.append(Paragraph(f"{global_num}. {q.text}{marks_text}", q_style))
 
-            # MCQ options
             if q_type == 'mcq':
-                options = getattr(q, 'options', None)
+                options: list | None = getattr(q, 'options', None)
                 if options and isinstance(options, list):
-                    labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+                    labels: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
                     for idx, opt in enumerate(options):
-                        label = labels[idx] if idx < len(labels) else str(idx + 1)
+                        label: str = labels[idx] if idx < len(labels) else str(idx + 1)
                         story.append(Paragraph(f"({label}) {opt}", option_style))
 
             story.append(Spacer(1, 0.12 * inch))
@@ -309,7 +312,6 @@ def generate_professional_pdf(questions, topic, include_answers=True, institutio
 
             global_num += 1
 
-    # Also handle any question types not in ordered_types
     for q_type, qs in sections.items():
         if q_type in ordered_types:
             continue
@@ -329,7 +331,6 @@ def generate_professional_pdf(questions, topic, include_answers=True, institutio
 
             global_num += 1
 
-    # Answer Key
     if include_answers and answer_entries:
         story.append(PageBreak())
         story.append(Paragraph("Answer Key", answer_key_title_style))
@@ -346,32 +347,31 @@ def generate_professional_pdf(questions, topic, include_answers=True, institutio
     return buffer
 
 
-def generate_docx_file(questions, topic, include_answers=True):
+def generate_docx_file(questions: list["Question"], topic: str, include_answers: bool = True) -> BytesIO:
+    import docx
+    
     document = docx.Document()
 
-    # Title
-    title = document.add_heading(f"Questions: {topic}", level=0)
+    document.add_heading(f"Questions: {topic}", level=0)
 
     document.add_paragraph("")
 
     for i, q in enumerate(questions, 1):
         marks = getattr(q, 'marks', None)
-        marks_text = f"  [{marks} marks]" if marks else ""
+        marks_text: str = f"  [{marks} marks]" if marks else ""
         q_para = document.add_paragraph()
         run = q_para.add_run(f"{i}. {q.text}{marks_text}")
         run.bold = True
 
-        # MCQ options
-        q_type = getattr(q, 'question_type', '')
+        q_type: str = getattr(q, 'question_type', '')
         if q_type == 'mcq':
-            options = getattr(q, 'options', None)
+            options: list | None = getattr(q, 'options', None)
             if options and isinstance(options, list):
-                labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+                labels: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
                 for idx, opt in enumerate(options):
-                    label = labels[idx] if idx < len(labels) else str(idx + 1)
+                    label: str = labels[idx] if idx < len(labels) else str(idx + 1)
                     document.add_paragraph(f"  ({label}) {opt}")
 
-    # Answer section
     if include_answers:
         document.add_page_break()
         document.add_heading("Answer Key", level=1)
