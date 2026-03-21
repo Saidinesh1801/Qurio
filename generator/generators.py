@@ -1,14 +1,16 @@
-from typing import Any
 import hashlib
 import json
 from functools import wraps
 from io import BytesIO
+from typing import Any
 
 try:
     import google.genai as genai_client
+
     USE_NEW_API = True
 except ImportError:
     import google.generativeai as genai_client
+
     USE_NEW_API = False
 
 from django.core.cache import cache
@@ -25,45 +27,48 @@ def cache_response(timeout: int = 300):
             for k, v in sorted(kwargs.items()):
                 cache_key_parts.append(f"{k}:{str(v)[:50]}")
             cache_key = f"gemini:{hashlib.md5('|'.join(cache_key_parts).encode()).hexdigest()}"
-            
+
             cached = cache.get(cache_key)
             if cached is not None:
                 return cached
-            
+
             result = func(*args, **kwargs)
             cache.set(cache_key, result, timeout)
             return result
+
         return wrapper
+
     return decorator
 
 
 def get_gemini_model() -> Any:
     import os
-    from dotenv import load_dotenv
+
     from django.conf import settings
-    
-    dotenv_path = settings.BASE_DIR / '.env'
+    from dotenv import load_dotenv
+
+    dotenv_path = settings.BASE_DIR / ".env"
     if not os.path.exists(dotenv_path):
-        dotenv_path = settings.BASE_DIR / 'QuestionGen' / '.env'
+        dotenv_path = settings.BASE_DIR / "QuestionGen" / ".env"
     load_dotenv(dotenv_path=dotenv_path)
-    
-    api_key: str | None = os.environ.get('GEMINI_API_KEY')
+
+    api_key: str | None = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set")
-    
+
     if USE_NEW_API:
         client = genai_client.Client(api_key=api_key)
         return client
     else:
         genai_client.configure(api_key=api_key)
-        return genai_client.GenerativeModel('gemini-2.5-flash')
+        return genai_client.GenerativeModel("gemini-2.5-flash")
 
 
 def generate_content_with_gemini(model: Any, prompt: str) -> Any:
     if USE_NEW_API:
         response = model.models.generate_content(
             model="gemini-2.0-flash",
-            contents=[{"role": "user", "parts": [{"text": prompt}]}]
+            contents=[{"role": "user", "parts": [{"text": prompt}]}],
         )
         return response.text
     else:
@@ -83,10 +88,7 @@ def _clean_gemini_json(response_text: str) -> list[dict[str, Any]] | dict[str, A
 
 @cache_response(timeout=300)
 def generate_questions_with_gemini(
-    text: str,
-    difficulty: str,
-    num_questions: int = 5,
-    question_type: str = "MIXED"
+    text: str, difficulty: str, num_questions: int = 5, question_type: str = "MIXED"
 ) -> list[dict[str, Any]]:
     model: Any = get_gemini_model()
     qtype: str = question_type.upper()
@@ -177,6 +179,7 @@ Return ONLY a JSON array, no markdown, no code blocks:
     except Exception as e:
         print(f"DEBUG: Error generating questions: {e}")
         import traceback
+
         traceback.print_exc()
         raise ValueError(f"Failed to generate questions: {str(e)}") from e
 
@@ -242,10 +245,7 @@ Text:
 
 
 def evaluate_answer_with_gemini(
-    question_text: str,
-    model_answer: str,
-    student_answer: str,
-    max_marks: int
+    question_text: str, model_answer: str, student_answer: str, max_marks: int
 ) -> dict[str, Any]:
     model: Any = get_gemini_model()
     prompt: str = f"""You are an expert teacher evaluating a student's answer.
@@ -278,20 +278,16 @@ Be fair but thorough. Give partial marks where appropriate."""
             "strengths": "Error occurred",
             "weaknesses": str(e),
             "suggestions": "Please try again",
-            "model_answer": model_answer
+            "model_answer": model_answer,
         }
 
 
-def regenerate_question_with_gemini(
-    question: Any,
-    topic: str = None,
-    difficulty: str = None
-) -> dict[str, Any]:
+def regenerate_question_with_gemini(question: Any, topic: str = None, difficulty: str = None) -> dict[str, Any]:
     model: Any = get_gemini_model()
-    
+
     topic = topic or question.topic
     difficulty = difficulty or question.difficulty
-    
+
     prompt: str = f"""Generate 1 {difficulty} level {question.get_type_display_formatted()} question about "{topic}".
 
 Return ONLY a JSON object (not array):
@@ -308,13 +304,9 @@ Return ONLY a JSON object (not array):
         raise
 
 
-def generate_quiz_with_gemini(
-    text: str,
-    num_questions: int = 10,
-    difficulty: str = "Medium"
-) -> dict[str, Any]:
+def generate_quiz_with_gemini(text: str, num_questions: int = 10, difficulty: str = "Medium") -> dict[str, Any]:
     model: Any = get_gemini_model()
-    
+
     prompt: str = f"""Generate a complete quiz with {num_questions} {difficulty} level questions from the following text.
 Include a mix of:
 - Multiple Choice (4 options)
@@ -352,7 +344,7 @@ Text:
 
 def suggest_improvements_with_gemini(text: str) -> str | None:
     model: Any = get_gemini_model()
-    
+
     prompt: str = f"""Analyze the following educational content and suggest improvements.
 Consider:
 1. Clarity and organization

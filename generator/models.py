@@ -1,9 +1,10 @@
-from django.db import models
-from django.utils import timezone
+import uuid
+
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-import uuid
+from django.utils import timezone
 
 
 class Tag(models.Model):
@@ -15,53 +16,57 @@ class Tag(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = self.name.lower().replace(' ', '-')
+            self.slug = self.name.lower().replace(" ", "-")
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
 
 class Question(models.Model):
     DIFFICULTY_CHOICES = [
-        ('Easy', 'Easy'),
-        ('Medium', 'Medium'),
-        ('Hard', 'Hard'),
+        ("Easy", "Easy"),
+        ("Medium", "Medium"),
+        ("Hard", "Hard"),
     ]
 
     TYPE_CHOICES = [
-        ('short', 'Short Answer'),
-        ('mcq', 'Multiple Choice'),
-        ('true_false', 'True/False'),
-        ('long', 'Long Answer'),
-        ('numerical', 'Numerical'),
-        ('mixed', 'Mixed'),
+        ("short", "Short Answer"),
+        ("mcq", "Multiple Choice"),
+        ("true_false", "True/False"),
+        ("long", "Long Answer"),
+        ("numerical", "Numerical"),
+        ("mixed", "Mixed"),
     ]
 
     BLOOM_CHOICES = [
-        ('remember', 'Remember'),
-        ('understand', 'Understand'),
-        ('apply', 'Apply'),
-        ('analyze', 'Analyze'),
-        ('evaluate', 'Evaluate'),
-        ('create', 'Create'),
+        ("remember", "Remember"),
+        ("understand", "Understand"),
+        ("apply", "Apply"),
+        ("analyze", "Analyze"),
+        ("evaluate", "Evaluate"),
+        ("create", "Create"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='questions')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="questions")
     text = models.TextField()
     answer = models.TextField(blank=True, null=True)
     explanation = models.TextField(blank=True, null=True)
     topic = models.CharField(max_length=200)
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
-    question_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='mixed')
+    question_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="mixed")
     marks = models.IntegerField(default=1)
-    bloom_level = models.CharField(max_length=20, choices=BLOOM_CHOICES, default='understand')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='questions')
+    bloom_level = models.CharField(max_length=20, choices=BLOOM_CHOICES, default="understand")
+    tags = models.ManyToManyField(Tag, blank=True, related_name="questions")
     share_id = models.CharField(max_length=36, blank=True, null=True, unique=True, db_index=True)
-    source_text = models.TextField(blank=True, null=True, help_text="Original text from which question was generated")
+    source_text = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Original text from which question was generated",
+    )
     is_favorite = models.BooleanField(default=False)
     times_used = models.IntegerField(default=0)
     avg_quiz_score = models.FloatField(null=True, blank=True)
@@ -72,26 +77,26 @@ class Question(models.Model):
         return f"{self.topic} ({self.difficulty}) - {self.marks} Marks"
 
     def get_type_display_formatted(self):
-        return dict(self.TYPE_CHOICES).get(self.question_type, 'Unknown')
+        return dict(self.TYPE_CHOICES).get(self.question_type, "Unknown")
 
     def get_difficulty_display_formatted(self):
-        return dict(self.DIFFICULTY_CHOICES).get(self.difficulty, 'Unknown')
+        return dict(self.DIFFICULTY_CHOICES).get(self.difficulty, "Unknown")
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['topic', 'difficulty']),
-            models.Index(fields=['question_type', 'bloom_level']),
-            models.Index(fields=['-created_at']),
+            models.Index(fields=["topic", "difficulty"]),
+            models.Index(fields=["question_type", "bloom_level"]),
+            models.Index(fields=["-created_at"]),
         ]
 
 
 class QuestionBank(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='question_banks')
-    questions = models.ManyToManyField(Question, blank=True, related_name='question_banks')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='question_banks')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="question_banks")
+    questions = models.ManyToManyField(Question, blank=True, related_name="question_banks")
+    tags = models.ManyToManyField(Tag, blank=True, related_name="question_banks")
     is_public = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
     view_count = models.IntegerField(default=0)
@@ -107,19 +112,19 @@ class QuestionBank(models.Model):
 
     class Meta:
         verbose_name_plural = "Question Banks"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 class QuizSession(models.Model):
     session_id = models.CharField(max_length=36, default=uuid.uuid4, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='quiz_sessions')
-    questions = models.ManyToManyField(Question, related_name='quiz_sessions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="quiz_sessions")
+    questions = models.ManyToManyField(Question, related_name="quiz_sessions")
     topic = models.CharField(max_length=200)
     score = models.IntegerField(null=True, blank=True)
     total = models.IntegerField(default=0)
     time_taken = models.IntegerField(null=True, blank=True)
     completed = models.BooleanField(default=False)
-    difficulty = models.CharField(max_length=10, choices=Question.DIFFICULTY_CHOICES, default='Medium')
+    difficulty = models.CharField(max_length=10, choices=Question.DIFFICULTY_CHOICES, default="Medium")
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -131,15 +136,15 @@ class QuizSession(models.Model):
         return 0
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 class FlashcardSet(models.Model):
     set_id = models.CharField(max_length=36, default=uuid.uuid4, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='flashcard_sets')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="flashcard_sets")
     topic = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    tags = models.ManyToManyField(Tag, blank=True, related_name='flashcard_sets')
+    tags = models.ManyToManyField(Tag, blank=True, related_name="flashcard_sets")
     is_favorite = models.BooleanField(default=False)
     last_studied = models.DateTimeField(null=True, blank=True)
     study_count = models.IntegerField(default=0)
@@ -149,11 +154,11 @@ class FlashcardSet(models.Model):
         return f"Flashcards: {self.topic}"
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 class Flashcard(models.Model):
-    flashcard_set = models.ForeignKey(FlashcardSet, on_delete=models.CASCADE, related_name='cards')
+    flashcard_set = models.ForeignKey(FlashcardSet, on_delete=models.CASCADE, related_name="cards")
     front = models.TextField()
     back = models.TextField()
     order = models.IntegerField(default=0)
@@ -162,7 +167,7 @@ class Flashcard(models.Model):
     last_reviewed = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
 
     def __str__(self):
         return f"Card {self.order}: {self.front[:50]}"
@@ -175,24 +180,24 @@ class Flashcard(models.Model):
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
-        ('student', 'Student'),
-        ('teacher', 'Teacher'),
-        ('institution', 'Institution'),
-        ('admin', 'Admin'),
+        ("student", "Student"),
+        ("teacher", "Teacher"),
+        ("institution", "Institution"),
+        ("admin", "Admin"),
     ]
 
     THEME_CHOICES = [
-        ('light', 'Light'),
-        ('dark', 'Dark'),
-        ('auto', 'Auto'),
+        ("light", "Light"),
+        ("dark", "Dark"),
+        ("auto", "Auto"),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="student")
     institution = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='auto')
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default="auto")
     email_verified = models.BooleanField(default=False)
     email_notifications = models.BooleanField(default=True)
     api_rate_limit = models.IntegerField(default=100)
@@ -210,6 +215,7 @@ class UserProfile(models.Model):
 
     def reset_daily_questions(self):
         from datetime import date
+
         if self.last_generation_date != date.today():
             self.questions_generated_today = 0
             self.last_generation_date = date.today()
@@ -228,15 +234,15 @@ class UserProfile(models.Model):
 
 class SharedAccess(models.Model):
     ACCESS_LEVEL_CHOICES = [
-        ('view', 'View Only'),
-        ('edit', 'Edit'),
-        ('admin', 'Full Access'),
+        ("view", "View Only"),
+        ("edit", "Edit"),
+        ("admin", "Full Access"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_access')
-    question_bank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE, related_name='shared_access')
-    access_level = models.CharField(max_length=10, choices=ACCESS_LEVEL_CHOICES, default='view')
-    shared_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='shared_by')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_access")
+    question_bank = models.ForeignKey(QuestionBank, on_delete=models.CASCADE, related_name="shared_access")
+    access_level = models.CharField(max_length=10, choices=ACCESS_LEVEL_CHOICES, default="view")
+    shared_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="shared_by")
     shared_at = models.DateTimeField(default=timezone.now)
     expires_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -245,31 +251,31 @@ class SharedAccess(models.Model):
         return f"{self.user.username} - {self.question_bank.name} ({self.access_level})"
 
     class Meta:
-        unique_together = ['user', 'question_bank']
+        unique_together = ["user", "question_bank"]
 
 
 class StudyPlan(models.Model):
     FREQUENCY_CHOICES = [
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('custom', 'Custom'),
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("custom", "Custom"),
     ]
 
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('paused', 'Paused'),
-        ('completed', 'Completed'),
+        ("active", "Active"),
+        ("paused", "Paused"),
+        ("completed", "Completed"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='study_plans')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="study_plans")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    flashcard_sets = models.ManyToManyField(FlashcardSet, blank=True, related_name='study_plans')
-    question_banks = models.ManyToManyField(QuestionBank, blank=True, related_name='study_plans')
-    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, default='daily')
+    flashcard_sets = models.ManyToManyField(FlashcardSet, blank=True, related_name="study_plans")
+    question_banks = models.ManyToManyField(QuestionBank, blank=True, related_name="study_plans")
+    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, default="daily")
     target_daily_cards = models.IntegerField(default=20)
     target_daily_questions = models.IntegerField(default=10)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active")
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     streak_count = models.IntegerField(default=0)
@@ -281,19 +287,19 @@ class StudyPlan(models.Model):
         return f"Study Plan: {self.title}"
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 class Notification(models.Model):
     TYPE_CHOICES = [
-        ('quiz_result', 'Quiz Result'),
-        ('shared_content', 'Shared Content'),
-        ('weekly_summary', 'Weekly Summary'),
-        ('achievement', 'Achievement'),
-        ('system', 'System'),
+        ("quiz_result", "Quiz Result"),
+        ("shared_content", "Shared Content"),
+        ("weekly_summary", "Weekly Summary"),
+        ("achievement", "Achievement"),
+        ("system", "System"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     title = models.CharField(max_length=200)
     message = models.TextField()
@@ -305,7 +311,7 @@ class Notification(models.Model):
         return f"{self.user.username}: {self.title}"
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 @receiver(post_save, sender=User)
@@ -316,5 +322,5 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'profile'):
+    if hasattr(instance, "profile"):
         instance.profile.save()

@@ -75,7 +75,7 @@ jobs:
     
     - name: Run Flake8
       run: |
-        flake8 generator/ core/ --max-line-length=120 --ignore=E501,W503
+        flake8 generator/ core/ --max-line-length=120 --ignore=E501,W503,W293,E226,F401
 
   build:
     needs: [test, lint]

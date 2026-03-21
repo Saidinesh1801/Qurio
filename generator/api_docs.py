@@ -218,9 +218,9 @@ fetch('/api/v1/generate-questions/', {
 ```
 """
 
-API_VERSION = 'v1'
-API_TITLE = 'Question Generation API'
-API_DESCRIPTION = '''
+API_VERSION = "v1"
+API_TITLE = "Question Generation API"
+API_DESCRIPTION = """
 A comprehensive API for generating educational questions, flashcards, and study materials using AI.
 
 ## Features
@@ -241,4 +241,4 @@ A comprehensive API for generating educational questions, flashcards, and study 
 ## Support
 
 For API support, contact: support@questiongen.example.com
-'''
+"""

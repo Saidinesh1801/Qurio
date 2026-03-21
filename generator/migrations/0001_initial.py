@@ -7,18 +7,35 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('topic', models.CharField(max_length=100)),
-                ('difficulty', models.CharField(choices=[('Easy', 'Easy'), ('Medium', 'Medium'), ('Hard', 'Hard')], max_length=10)),
-                ('marks', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                ("topic", models.CharField(max_length=100)),
+                (
+                    "difficulty",
+                    models.CharField(
+                        choices=[
+                            ("Easy", "Easy"),
+                            ("Medium", "Medium"),
+                            ("Hard", "Hard"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("marks", models.IntegerField()),
             ],
         ),
     ]

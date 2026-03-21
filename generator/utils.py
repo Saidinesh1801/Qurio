@@ -1,10 +1,19 @@
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, HRFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.units import inch
 from io import BytesIO
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    HRFlowable,
+    PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 if TYPE_CHECKING:
     from .models import Question
@@ -13,125 +22,134 @@ if TYPE_CHECKING:
 def generate_pdf_file(questions: list["Question"], topic: str, include_answers: bool = True) -> BytesIO:
     try:
         buffer: BytesIO = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=50, rightMargin=50, topMargin=50, bottomMargin=50)
-        
-        styles = getSampleStyleSheet()
-        
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#00d4ff'),
-            spaceAfter=30,
-            alignment=0
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            leftMargin=50,
+            rightMargin=50,
+            topMargin=50,
+            bottomMargin=50,
         )
-        
+
+        styles = getSampleStyleSheet()
+
+        title_style = ParagraphStyle(
+            "CustomTitle",
+            parent=styles["Heading1"],
+            fontSize=24,
+            textColor=colors.HexColor("#00d4ff"),
+            spaceAfter=30,
+            alignment=0,
+        )
+
         question_style = ParagraphStyle(
-            'CustomQuestion',
-            parent=styles['BodyText'],
+            "CustomQuestion",
+            parent=styles["BodyText"],
             fontSize=11,
             textColor=colors.black,
             spaceAfter=6,
             leading=14,
-            fontName='Helvetica-Bold'
+            fontName="Helvetica-Bold",
         )
-        
+
         answer_style = ParagraphStyle(
-            'CustomAnswer',
-            parent=styles['Italic'],
+            "CustomAnswer",
+            parent=styles["Italic"],
             fontSize=10,
-            textColor=colors.HexColor('#2d5016'),
+            textColor=colors.HexColor("#2d5016"),
             spaceAfter=6,
             leading=13,
             leftIndent=20,
-            fontName='Helvetica'
+            fontName="Helvetica",
         )
-        
+
         explanation_style = ParagraphStyle(
-            'CustomExplanation',
-            parent=styles['BodyText'],
+            "CustomExplanation",
+            parent=styles["BodyText"],
             fontSize=9,
-            textColor=colors.HexColor('#1a4d7c'),
+            textColor=colors.HexColor("#1a4d7c"),
             spaceAfter=12,
             leading=12,
             leftIndent=20,
-            fontName='Helvetica',
-            backColor=colors.HexColor('#f0f7ff'),
-            borderPadding=8
+            fontName="Helvetica",
+            backColor=colors.HexColor("#f0f7ff"),
+            borderPadding=8,
         )
-        
+
         step_style = ParagraphStyle(
-            'StepStyle',
-            parent=styles['BodyText'],
+            "StepStyle",
+            parent=styles["BodyText"],
             fontSize=9,
-            textColor=colors.HexColor('#333333'),
+            textColor=colors.HexColor("#333333"),
             spaceAfter=3,
             leading=11,
             leftIndent=30,
-            fontName='Helvetica'
+            fontName="Helvetica",
         )
-        
+
         story: list = []
-        
+
         suffix: str = "" if include_answers else " (Questions Only)"
         title_text: str = f"Generated Questions: {topic}{suffix}"
         title_p = Paragraph(title_text, title_style)
         story.append(title_p)
-        story.append(Spacer(1, 0.3*inch))
-        
+        story.append(Spacer(1, 0.3 * inch))
+
         for i, q in enumerate(questions, 1):
-            q_type: str = getattr(q, 'question_type', 'mixed')
-            type_label: str = " [Numerical]" if q_type == 'numerical' else ""
+            q_type: str = getattr(q, "question_type", "mixed")
+            type_label: str = " [Numerical]" if q_type == "numerical" else ""
             question_text: str = f"<b>{i}. {q.text}{type_label}</b>"
             question_p = Paragraph(question_text, question_style)
             story.append(question_p)
-            story.append(Spacer(1, 0.08*inch))
-            
+            story.append(Spacer(1, 0.08 * inch))
+
             if include_answers:
                 if q.answer:
                     answer_text: str = f"<b>Answer:</b> {q.answer}"
                     answer_p = Paragraph(answer_text, answer_style)
                     story.append(answer_p)
-                
-                explanation: str = getattr(q, 'explanation', '')
+
+                explanation: str = getattr(q, "explanation", "")
                 if explanation:
-                    story.append(Spacer(1, 0.05*inch))
+                    story.append(Spacer(1, 0.05 * inch))
                     explanation_header = Paragraph("<b>Step-by-Step Solution:</b>", explanation_style)
                     story.append(explanation_header)
-                    
-                    steps: list[str] = explanation.replace('Step ', '\nStep ').strip().split('\n')
+
+                    steps: list[str] = explanation.replace("Step ", "\nStep ").strip().split("\n")
                     for step in steps:
                         step = step.strip()
                         if step:
                             step_p = Paragraph(step, step_style)
                             story.append(step_p)
-            
-            story.append(Spacer(1, 0.25*inch))
-            
+
+            story.append(Spacer(1, 0.25 * inch))
+
             if include_answers:
-                questions_per_page: int = 2 if q_type == 'numerical' else 3
+                questions_per_page: int = 2 if q_type == "numerical" else 3
             else:
                 questions_per_page = 5
             if (i % questions_per_page == 0) and (i < len(questions)):
                 story.append(PageBreak())
-        
+
         doc.build(story)
-        
+
         buffer.seek(0)
         return buffer
-        
+
     except Exception as e:
         print(f"ERROR in generate_pdf_file: {str(e)}")
         import traceback
+
         traceback.print_exc()
         raise
 
 
 def extract_text_from_file(uploaded_file: Any) -> str:
     name: str = uploaded_file.name.lower()
-    
-    if name.endswith('.pdf'):
+
+    if name.endswith(".pdf"):
         import PyPDF2
+
         reader = PyPDF2.PdfReader(uploaded_file)
         text: str = ""
         for page in reader.pages:
@@ -139,19 +157,20 @@ def extract_text_from_file(uploaded_file: Any) -> str:
             if page_text:
                 text += page_text + "\n"
         return text.strip()
-    
-    elif name.endswith('.docx'):
+
+    elif name.endswith(".docx"):
         import docx
+
         document = docx.Document(uploaded_file)
         text = "\n".join(para.text for para in document.paragraphs)
         return text.strip()
-    
-    elif name.endswith('.txt'):
+
+    elif name.endswith(".txt"):
         raw = uploaded_file.read()
         if isinstance(raw, bytes):
-            return raw.decode('utf-8').strip()
+            return raw.decode("utf-8").strip()
         return raw.strip()
-    
+
     else:
         raise ValueError(f"Unsupported file type: {name}")
 
@@ -162,93 +181,100 @@ def generate_professional_pdf(
     include_answers: bool = True,
     institution: str = "",
     duration: str = "",
-    total_marks: int | None = None
+    total_marks: int | None = None,
 ) -> BytesIO:
     buffer: BytesIO = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=50, rightMargin=50, topMargin=40, bottomMargin=40)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=50,
+        rightMargin=50,
+        topMargin=40,
+        bottomMargin=40,
+    )
 
     styles = getSampleStyleSheet()
 
     institution_style = ParagraphStyle(
-        'Institution',
-        parent=styles['Heading1'],
+        "Institution",
+        parent=styles["Heading1"],
         fontSize=16,
         textColor=colors.black,
         alignment=1,
         spaceAfter=4,
-        fontName='Helvetica-Bold'
+        fontName="Helvetica-Bold",
     )
 
     exam_title_style = ParagraphStyle(
-        'ExamTitle',
-        parent=styles['Heading2'],
+        "ExamTitle",
+        parent=styles["Heading2"],
         fontSize=14,
         textColor=colors.black,
         alignment=1,
         spaceAfter=4,
-        fontName='Helvetica-Bold'
+        fontName="Helvetica-Bold",
     )
 
     meta_style = ParagraphStyle(
-        'Meta',
-        parent=styles['BodyText'],
+        "Meta",
+        parent=styles["BodyText"],
         fontSize=10,
         textColor=colors.black,
         alignment=1,
         spaceAfter=2,
-        fontName='Helvetica'
+        fontName="Helvetica",
     )
 
     section_style = ParagraphStyle(
-        'Section',
-        parent=styles['Heading2'],
+        "Section",
+        parent=styles["Heading2"],
         fontSize=13,
         textColor=colors.black,
         spaceAfter=8,
         spaceBefore=16,
-        fontName='Helvetica-Bold',
-        underlineProportion=1
+        fontName="Helvetica-Bold",
+        underlineProportion=1,
     )
 
     q_style = ParagraphStyle(
-        'ProfQuestion',
-        parent=styles['BodyText'],
+        "ProfQuestion",
+        parent=styles["BodyText"],
         fontSize=11,
         textColor=colors.black,
         spaceAfter=4,
         leading=14,
-        fontName='Helvetica'
+        fontName="Helvetica",
     )
 
     option_style = ParagraphStyle(
-        'Option',
-        parent=styles['BodyText'],
+        "Option",
+        parent=styles["BodyText"],
         fontSize=10,
         textColor=colors.black,
         spaceAfter=2,
         leading=13,
         leftIndent=20,
-        fontName='Helvetica'
+        fontName="Helvetica",
     )
 
     answer_key_title_style = ParagraphStyle(
-        'AnswerKeyTitle',
-        parent=styles['Heading1'],
+        "AnswerKeyTitle",
+        parent=styles["Heading1"],
         fontSize=14,
         textColor=colors.black,
         alignment=1,
         spaceAfter=12,
-        fontName='Helvetica-Bold'
+        fontName="Helvetica-Bold",
     )
 
     answer_style = ParagraphStyle(
-        'ProfAnswer',
-        parent=styles['BodyText'],
+        "ProfAnswer",
+        parent=styles["BodyText"],
         fontSize=10,
-        textColor=colors.HexColor('#2d5016'),
+        textColor=colors.HexColor("#2d5016"),
         spaceAfter=4,
         leading=13,
-        fontName='Helvetica'
+        fontName="Helvetica",
     )
 
     story: list = []
@@ -268,17 +294,17 @@ def generate_professional_pdf(
     story.append(Spacer(1, 0.2 * inch))
 
     section_map: dict[str, str] = {
-        'mcq': 'Section A: Multiple Choice Questions',
-        'short': 'Section B: Short Answer Questions',
-        'long': 'Section C: Long Answer Questions',
-        'numerical': 'Section D: Numerical Problems',
-        'true_false': 'Section E: True or False',
+        "mcq": "Section A: Multiple Choice Questions",
+        "short": "Section B: Short Answer Questions",
+        "long": "Section C: Long Answer Questions",
+        "numerical": "Section D: Numerical Problems",
+        "true_false": "Section E: True or False",
     }
-    ordered_types: list[str] = ['mcq', 'short', 'long', 'numerical', 'true_false']
+    ordered_types: list[str] = ["mcq", "short", "long", "numerical", "true_false"]
 
     sections: dict[str, list["Question"]] = {}
     for q in questions:
-        q_type: str = getattr(q, 'question_type', 'short')
+        q_type: str = getattr(q, "question_type", "short")
         sections.setdefault(q_type, []).append(q)
 
     global_num: int = 1
@@ -292,22 +318,22 @@ def generate_professional_pdf(
         story.append(HRFlowable(width="100%", thickness=0.5, color=colors.grey, spaceAfter=8))
 
         for q in sections[q_type]:
-            marks: int | None = getattr(q, 'marks', None)
+            marks: int | None = getattr(q, "marks", None)
             marks_text: str = f"  [{marks} marks]" if marks else ""
             story.append(Paragraph(f"{global_num}. {q.text}{marks_text}", q_style))
 
-            if q_type == 'mcq':
-                options: list | None = getattr(q, 'options', None)
+            if q_type == "mcq":
+                options: list | None = getattr(q, "options", None)
                 if options and isinstance(options, list):
-                    labels: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+                    labels: list[str] = ["a", "b", "c", "d", "e", "f", "g", "h"]
                     for idx, opt in enumerate(options):
                         label: str = labels[idx] if idx < len(labels) else str(idx + 1)
                         story.append(Paragraph(f"({label}) {opt}", option_style))
 
             story.append(Spacer(1, 0.12 * inch))
 
-            if include_answers and getattr(q, 'answer', None):
-                explanation = getattr(q, 'explanation', '')
+            if include_answers and getattr(q, "answer", None):
+                explanation = getattr(q, "explanation", "")
                 answer_entries.append((global_num, q.answer, explanation))
 
             global_num += 1
@@ -320,13 +346,13 @@ def generate_professional_pdf(
         story.append(HRFlowable(width="100%", thickness=0.5, color=colors.grey, spaceAfter=8))
 
         for q in qs:
-            marks = getattr(q, 'marks', None)
+            marks = getattr(q, "marks", None)
             marks_text = f"  [{marks} marks]" if marks else ""
             story.append(Paragraph(f"{global_num}. {q.text}{marks_text}", q_style))
             story.append(Spacer(1, 0.12 * inch))
 
-            if include_answers and getattr(q, 'answer', None):
-                explanation = getattr(q, 'explanation', '')
+            if include_answers and getattr(q, "answer", None):
+                explanation = getattr(q, "explanation", "")
                 answer_entries.append((global_num, q.answer, explanation))
 
             global_num += 1
@@ -349,7 +375,7 @@ def generate_professional_pdf(
 
 def generate_docx_file(questions: list["Question"], topic: str, include_answers: bool = True) -> BytesIO:
     import docx
-    
+
     document = docx.Document()
 
     document.add_heading(f"Questions: {topic}", level=0)
@@ -357,17 +383,17 @@ def generate_docx_file(questions: list["Question"], topic: str, include_answers:
     document.add_paragraph("")
 
     for i, q in enumerate(questions, 1):
-        marks = getattr(q, 'marks', None)
+        marks = getattr(q, "marks", None)
         marks_text: str = f"  [{marks} marks]" if marks else ""
         q_para = document.add_paragraph()
         run = q_para.add_run(f"{i}. {q.text}{marks_text}")
         run.bold = True
 
-        q_type: str = getattr(q, 'question_type', '')
-        if q_type == 'mcq':
-            options: list | None = getattr(q, 'options', None)
+        q_type: str = getattr(q, "question_type", "")
+        if q_type == "mcq":
+            options: list | None = getattr(q, "options", None)
             if options and isinstance(options, list):
-                labels: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+                labels: list[str] = ["a", "b", "c", "d", "e", "f", "g", "h"]
                 for idx, opt in enumerate(options):
                     label: str = labels[idx] if idx < len(labels) else str(idx + 1)
                     document.add_paragraph(f"  ({label}) {opt}")
@@ -377,13 +403,13 @@ def generate_docx_file(questions: list["Question"], topic: str, include_answers:
         document.add_heading("Answer Key", level=1)
 
         for i, q in enumerate(questions, 1):
-            answer = getattr(q, 'answer', None)
+            answer = getattr(q, "answer", None)
             if answer:
                 ans_para = document.add_paragraph()
                 ans_para.add_run(f"{i}. ").bold = True
                 ans_para.add_run(str(answer))
 
-                explanation = getattr(q, 'explanation', '')
+                explanation = getattr(q, "explanation", "")
                 if explanation:
                     exp_para = document.add_paragraph()
                     run = exp_para.add_run(f"   Explanation: {explanation}")

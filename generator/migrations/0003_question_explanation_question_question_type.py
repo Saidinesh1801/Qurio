@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('generator', '0002_question_answer'),
+        ("generator", "0002_question_answer"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='question',
-            name='explanation',
+            model_name="question",
+            name="explanation",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='question',
-            name='question_type',
-            field=models.CharField(choices=[('theoretical', 'Theoretical'), ('numerical', 'Numerical'), ('mixed', 'Mixed')], default='mixed', max_length=20),
+            model_name="question",
+            name="question_type",
+            field=models.CharField(
+                choices=[
+                    ("theoretical", "Theoretical"),
+                    ("numerical", "Numerical"),
+                    ("mixed", "Mixed"),
+                ],
+                default="mixed",
+                max_length=20,
+            ),
         ),
     ]
