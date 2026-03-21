@@ -9,6 +9,7 @@ import google.generativeai as genai
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.db.models import QuerySet
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Question, QuizSession, FlashcardSet, Flashcard
 from .utils import generate_pdf_file, generate_professional_pdf, generate_docx_file, extract_text_from_file
@@ -230,13 +231,14 @@ from django.db.models import Q
 
 
 def regenerate_question(request: HttpRequest, question_id: int) -> HttpResponse:
+    from django.http import JsonResponse
+    from django.shortcuts import get_object_or_404
+    
     if request.method != 'POST':
-        from django.http import JsonResponse
         return JsonResponse({'error': 'POST required'}, status=405)
 
-    question: Question = Question.objects.get(id=question_id)
-
     try:
+        question: Question = get_object_or_404(Question, id=question_id)
         model: genai.GenerativeModel = get_gemini_model()
         prompt: str = f"""Generate 1 {question.difficulty} level {question.get_question_type_display()} question about "{question.topic}".
 
@@ -465,6 +467,7 @@ Be fair but thorough. Give partial marks where appropriate."""
     return render(request, 'evaluator.html', {'question': question})
 
 
+@login_required
 def analytics(request: HttpRequest) -> HttpResponse:
     from django.db.models import Count, Avg
 

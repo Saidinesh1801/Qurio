@@ -1,7 +1,106 @@
 import re
 from typing import Any
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
 from django.core.validators import MinLengthValidator, MaxLengthValidator, URLValidator
+
+
+class MinimumLengthValidator:
+    def __init__(self, min_length: int = 8):
+        self.min_length = min_length
+
+    def validate(self, password: str, user=None) -> None:
+        if len(password) < self.min_length:
+            raise ValidationError(
+                _("This password must contain at least %(min_length)d characters."),
+                code='password_too_short',
+                params={'min_length': self.min_length},
+            )
+
+    def get_help_text(self) -> str:
+        return _(f"Your password must contain at least {self.min_length} characters.")
+
+
+class NumericPasswordValidator:
+    def validate(self, password: str, user=None) -> None:
+        if password.isdigit():
+            raise ValidationError(
+                _("This password is entirely numeric."),
+                code='password_entirely_numeric',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password can't be entirely numeric.")
+
+
+class CommonPasswordValidator:
+    def __init__(self, password_list_path: str | None = None):
+        self.passwords: set[str] = {
+            'password', '12345678', '123456789', 'qwerty', 'abc123',
+            'password123', 'admin', 'letmein', 'welcome', 'monkey',
+            'dragon', 'master', 'login', 'passw0rd', 'hello',
+        }
+
+    def validate(self, password: str, user=None) -> None:
+        if password.lower() in self.passwords:
+            raise ValidationError(
+                _("This password is too common."),
+                code='password_too_common',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password can't be a commonly used password.")
+
+
+class UppercaseValidator:
+    def validate(self, password: str, user=None) -> None:
+        if not re.search(r'[A-Z]', password):
+            raise ValidationError(
+                _("Your password must contain at least one uppercase letter."),
+                code='password_no_uppercase',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password must contain at least one uppercase letter.")
+
+
+class LowercaseValidator:
+    def validate(self, password: str, user=None) -> None:
+        if not re.search(r'[a-z]', password):
+            raise ValidationError(
+                _("Your password must contain at least one lowercase letter."),
+                code='password_no_lowercase',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password must contain at least one lowercase letter.")
+
+
+class DigitValidator:
+    def validate(self, password: str, user=None) -> None:
+        if not re.search(r'\d', password):
+            raise ValidationError(
+                _("Your password must contain at least one digit."),
+                code='password_no_digit',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password must contain at least one digit.")
+
+
+class SpecialCharacterValidator:
+    def __init__(self, special_chars: str = r'!@#$%^&*()_+-=[]{}|;:,.<>?'):
+        self.special_chars = special_chars
+
+    def validate(self, password: str, user=None) -> None:
+        if not re.search(f'[{re.escape(self.special_chars)}]', password):
+            raise ValidationError(
+                _("Your password must contain at least one special character."),
+                code='password_no_special',
+            )
+
+    def get_help_text(self) -> str:
+        return _("Your password must contain at least one special character (!@#$%^&*).")
 
 
 class InputValidator:
