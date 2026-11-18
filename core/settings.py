@@ -19,9 +19,16 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-me-in-production")
+# SECRET_KEY must be set in production environments
+secret_key = os.environ.get("SECRET_KEY")
+if not secret_key and not os.environ.get("DEBUG", "False").lower() == "true":
+    raise ValueError(
+        "SECRET_KEY environment variable must be set. "
+        "For development, set DEBUG=True or provide a SECRET_KEY."
+    )
+SECRET_KEY = secret_key or "django-insecure-dev-key-change-me-in-production"
 
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 
@@ -68,6 +75,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 try:
     import channels
+    import channels_redis
 
     ASGI_APPLICATION = "core.asgi.application"
     CHANNEL_LAYERS = {
@@ -78,15 +86,29 @@ try:
             },
         },
     }
-except ImportError:
-    pass
+except ImportError as e:
+    # Channels not installed - WebSocket support will be unavailable
+    ASGI_APPLICATION = "core.asgi.application"
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.environ.get("USE_CLOUD_SQL", "").lower() == "true":
+    DATABASES = {
+        "default": {
+            "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
+            "NAME": os.environ.get("DB_NAME", "questiongen"),
+            "USER": os.environ.get("DB_USER", "postgres"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -116,12 +138,29 @@ RATE_LIMIT = {
     "window_seconds": int(os.environ.get("RATE_LIMIT_WINDOW_SECONDS", "60")),
 }
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "False").lower() == "true"
+
+if os.environ.get("GS_BUCKET_NAME"):
+    try:
+        STORAGES = {
+            "default": {
+                "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+                "OPTIONS": {
+                    "bucket_name": os.environ["GS_BUCKET_NAME"],
+                },
+            },
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+        }
+    except ImportError:
+        pass
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -191,7 +230,17 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@questiongen.com")
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+# Gemini API key is required for question generation
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    import logging
+    logger = logging.getLogger(__name__)
+    if not DEBUG:
+        raise ValueError(
+            "GEMINI_API_KEY environment variable is required for production. "
+            "Get a free key at https://aistudio.google.com/"
+        )
+    logger.warning("GEMINI_API_KEY not set - AI features will not work")
 
 THIRD_PARTY_APPS = {
     "rest_framework": {

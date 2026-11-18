@@ -6,11 +6,11 @@ from io import BytesIO
 from typing import Any
 
 import google.generativeai as genai
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from dotenv import load_dotenv
 from reportlab.lib.units import inch
 
 from .models import Flashcard, FlashcardSet, Question, QuizSession
@@ -21,16 +21,15 @@ from .utils import (
     generate_professional_pdf,
 )
 
-dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
-if not os.path.exists(dotenv_path):
-    dotenv_path = os.path.join(os.path.dirname(__file__), "..", "QuestionGen", ".env")
-load_dotenv(dotenv_path=dotenv_path)
-
 
 def get_gemini_model() -> genai.GenerativeModel:
-    api_key: str | None = os.environ.get("GEMINI_API_KEY")
+    """Get Gemini model configured with API key from Django settings."""
+    api_key = settings.GEMINI_API_KEY
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable not set")
+        raise ValueError(
+            "GEMINI_API_KEY is not configured. "
+            "Please set it in your .env file or environment variables."
+        )
     genai.configure(api_key=api_key)
     return genai.GenerativeModel("gemini-2.5-flash")
 

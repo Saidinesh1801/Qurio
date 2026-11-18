@@ -49,13 +49,27 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 4. Configure API key
-Create a `.env` file in the project root:
-```
-GEMINI_API_KEY=your_google_gemini_api_key_here
+### 4. Configure Environment Variables
+Copy the example environment file to create your local `.env`:
+```bash
+cp .env.example .env
 ```
 
-Get a free API key at [Google AI Studio](https://aistudio.google.com/).
+Edit `.env` and set at least these required variables:
+```env
+GEMINI_API_KEY=your_google_gemini_api_key_here
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+```
+
+Get a free Google Gemini API key at [Google AI Studio](https://aistudio.google.com/).
+
+For production deployments, see the `.env.example` file for additional configuration options including:
+- Database configuration (PostgreSQL for production)
+- Redis configuration for caching
+- Google Cloud Storage setup
+- Email/notification settings
+- Security settings
 
 ### 5. Run migrations
 ```bash
